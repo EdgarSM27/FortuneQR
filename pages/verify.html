@@ -12,7 +12,7 @@
     <input type="hidden" id="fortune_qr">
 
     <label>Código de Tienda:</label><br>
-    <input type="text" id="codigo_tienda" required><br><br>
+    <input type="text" id="codigo_tienda_usuario" required><br><br>
 
     <label>Nombre:</label><br>
     <input type="text" id="nombre" required><br><br>
@@ -42,13 +42,19 @@
 
   <script>
     const supabaseUrl = "https://vyagabfmbyjcbslfdgua.supabase.co";
-    const supabaseKey = "sb_publishable_9fDuHl5nKR_yf1RnQ95JBA_Sb_jGK8B"; 
+    const supabaseKey = "sb_publishable_9fDuHl5nKR_yf1RnQ95JBA_Sb_jGK8B"; // Public key
     const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 
+    // Obtener parámetro fortune_qr de la URL
     const params = new URLSearchParams(window.location.search);
     const qr = params.get("fortune_qr");
 
-    let codigoTiendaOriginal = null;
+    let codigoTiendaReal = null; // Código de tienda asociado al QR
+
+    function generarID() {
+      const num = Math.floor(Math.random() * 100000000);
+      return `QR-${num.toString().padStart(8, '0')}`;
+    }
 
     async function verificarQR() {
       if (!qr) {
@@ -56,6 +62,7 @@
         return;
       }
 
+      // Buscar en Supabase el QR
       const { data, error } = await supabaseClient
         .from("certificaciones")
         .select("*")
@@ -65,57 +72,51 @@
       if (error || !data) {
         document.getElementById("mensaje").innerText = "❌ QR no válido o no encontrado";
       } else {
+        // Guardar código de tienda real para validar
+        codigoTiendaReal = data.codigo_tienda;
         document.getElementById("fortune_qr").value = data.fortune_qr;
-        codigoTiendaOriginal = data.codigo_tienda;
 
-        if (data.nombre || data.email) {
-          document.getElementById("mensaje").innerText = "⚠️ Este código ya fue registrado.";
+        // Si ya está registrado (campos llenos)
+        if (data.nombre || data.email || data.telefono) {
+          document.getElementById("mensaje").innerText = "⚠️ Este QR ya fue registrado.";
         } else {
+          // Mostrar formulario
           document.getElementById("registroForm").style.display = "block";
           document.getElementById("mensaje").innerText = "✅ QR verificado, complete sus datos.";
         }
       }
     }
 
+    // Insertar registro en Supabase
     document.getElementById("registroForm").addEventListener("submit", async function(e) {
       e.preventDefault();
 
-      const codigoIngresado = document.getElementById("codigo_tienda").value.trim();
-      if (codigoIngresado !== codigoTiendaOriginal) {
+      const codigoIngresado = document.getElementById("codigo_tienda_usuario").value;
+      if (codigoIngresado !== codigoTiendaReal) {
         document.getElementById("mensaje").innerText = "❌ Código de tienda incorrecto para este QR.";
         return;
       }
 
-      const { data: existing } = await supabaseClient
-        .from("certificaciones")
-        .select("cliente_id")
-        .eq("fortune_qr", document.getElementById("fortune_qr").value)
-        .maybeSingle();
-
-      const updateData = {
-        nombre: document.getElementById("nombre").value,
-        email: document.getElementById("email").value,
-        telefono: document.getElementById("telefono").value,
-        pais: document.getElementById("pais").value,
-        ciudad: document.getElementById("ciudad").value,
-        calle: document.getElementById("calle").value,
-        codigopostal: document.getElementById("codigopostal").value,
-        marca_temporal: new Date().toISOString()
-      };
-
-      if (!existing.cliente_id) {
-        updateData.cliente_id = crypto.randomUUID();
-      }
+      const nuevoId = generarID();
 
       const { error } = await supabaseClient
         .from("certificaciones")
-        .update(updateData)
-        .eq("fortune_qr", document.getElementById("fortune_qr").value);
+        .update({
+          id: nuevoId,
+          nombre: document.getElementById("nombre").value,
+          email: document.getElementById("email").value,
+          telefono: document.getElementById("telefono").value,
+          pais: document.getElementById("pais").value,
+          ciudad: document.getElementById("ciudad").value,
+          calle: document.getElementById("calle").value,
+          codigopostal: document.getElementById("codigopostal").value
+        })
+        .eq("fortune_qr", qr);
 
       if (error) {
         document.getElementById("mensaje").innerText = "❌ Error al registrar: " + error.message;
       } else {
-        document.getElementById("mensaje").innerText = "✅ Registro completado con éxito";
+        document.getElementById("mensaje").innerText = `✅ Registro completado con éxito. ID: ${nuevoId}`;
         document.getElementById("registroForm").reset();
         document.getElementById("registroForm").style.display = "none";
       }
