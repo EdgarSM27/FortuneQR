@@ -1,1 +1,93 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Verificación QR</title>
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <style>
+    body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
+    form { margin-top: 20px; }
+    input, button { padding: 10px; margin: 5px; width: 80%; max-width: 300px; }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+
+<h2>Verificación de QR</h2>
+<p id="status">Cargando...</p>
+
+<form id="formulario" class="hidden">
+  <input type="text" id="nombre" placeholder="Tu nombre" required>
+  <input type="email" id="email" placeholder="Tu correo" required>
+  <button type="submit">Registrar</button>
+</form>
+
+<script>
+  // Configuración de Supabase
+  const SUPABASE_URL = "https://vyagabfmbyjcbslfdgua.supabase.co";
+  const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ5YWdhYmZtYnlqY2JzbGZkZ3VhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQwODk1NzIsImV4cCI6MjA2OTY2NTU3Mn0.oxIjeQSVR78X3Oi1jPg9sXYJI-YAlnMWm01VdxRHW0w";
+  const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  const status = document.getElementById("status");
+  const form = document.getElementById("formulario");
+  const params = new URLSearchParams(window.location.search);
+  const qrId = params.get("id");
+
+  async function verificarQR() {
+    if (!qrId) {
+      status.textContent = "QR inválido o faltante.";
+      return;
+    }
+
+    // Buscar el QR en la tabla
+    const { data, error } = await supabaseClient
+      .from("certificaciones")
+      .select("*")
+      .eq("fortune_qr", qrId)
+      .maybeSingle();
+
+    if (error || !data) {
+      status.textContent = "QR no válido.";
+      return;
+    }
+
+    if (data.cliente_id) {
+      status.textContent = "Este QR ya fue registrado.";
+      return;
+    }
+
+    status.textContent = "QR válido, completa el formulario:";
+    form.classList.remove("hidden");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const nombre = document.getElementById("nombre").value;
+      const email = document.getElementById("email").value;
+
+      // Actualizamos registro en Supabase
+      const { error: updateError } = await supabaseClient
+        .from("certificaciones")
+        .update({ 
+          cliente_id: crypto.randomUUID(), 
+          nombre: nombre,
+          email: email
+        })
+        .eq("fortune_qr", qrId);
+
+      if (updateError) {
+        status.textContent = "Error al registrar. Intenta de nuevo.";
+      } else {
+        status.textContent = "¡Registro exitoso!";
+        form.classList.add("hidden");
+      }
+    });
+  }
+
+  verificarQR();
+</script>
+
+</body>
+</html>
 
