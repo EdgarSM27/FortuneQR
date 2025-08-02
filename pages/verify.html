@@ -2,65 +2,126 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Verificación de QR</title>
+  <title>Registro de Compra</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <style>
-    body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; }
-    h1 { color: #333; }
-    .valido { color: green; font-weight: bold; }
-    .invalido { color: red; font-weight: bold; }
-  </style>
 </head>
 <body>
+  <h1>Registro de Compra</h1>
 
-  <h1>Verificación de QR</h1>
-  <p id="resultado">Cargando...</p>
+  <form id="registroForm" style="display:none;">
+    <input type="hidden" id="fortune_qr">
+
+    <label>Código de Tienda:</label><br>
+    <input type="text" id="codigo_tienda" required><br><br>
+
+    <label>Nombre:</label><br>
+    <input type="text" id="nombre" required><br><br>
+
+    <label>Email:</label><br>
+    <input type="email" id="email" required><br><br>
+
+    <label>Teléfono:</label><br>
+    <input type="text" id="telefono"><br><br>
+
+    <label>País:</label><br>
+    <input type="text" id="pais"><br><br>
+
+    <label>Ciudad:</label><br>
+    <input type="text" id="ciudad"><br><br>
+
+    <label>Calle:</label><br>
+    <input type="text" id="calle"><br><br>
+
+    <label>Código Postal:</label><br>
+    <input type="text" id="codigopostal"><br><br>
+
+    <button type="submit">Registrar Compra</button>
+  </form>
+
+  <p id="mensaje"></p>
 
   <script>
-    // 1️⃣ Configuración de Supabase
-    const SUPABASE_URL = "https://vyagabfmbyjcbslfdgua.supabase.co";
-    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ5YWdhYmZtYnlqY2JzbGZkZ3VhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQwODk1NzIsImV4cCI6MjA2OTY2NTU3Mn0.oxIjeQSVR78X3Oi1jPg9sXYJI-YAlnMWm01VdxRHW0w";
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const supabaseUrl = "https://vyagabfmbyjcbslfdgua.supabase.co";
+    const supabaseKey = "sb_publishable_9fDuHl5nKR_yf1RnQ95JBA_Sb_jGK8B"; 
+    const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 
-    // 2️⃣ Leer el ID desde la URL
     const params = new URLSearchParams(window.location.search);
-    const qrId = (params.get('id') || "").trim(); // elimina espacios
-    console.log("Buscando QR:", qrId);
+    const qr = params.get("fortune_qr");
 
-    const resultado = document.getElementById("resultado");
+    let codigoTiendaOriginal = null;
 
-    // 3️⃣ Función para verificar QR
     async function verificarQR() {
-      if (!qrId) {
-        resultado.innerHTML = "<span class='invalido'>QR no válido.</span>";
+      if (!qr) {
+        document.getElementById("mensaje").innerText = "❌ QR inválido o faltante";
         return;
       }
 
-      // Consulta usando ilike para evitar problemas de mayúsculas
-      const { data, error } = await supabase
-        .from('certificaciones')
-        .select('*')
-        .ilike('fortune_qr', qrId);
+      const { data, error } = await supabaseClient
+        .from("certificaciones")
+        .select("*")
+        .eq("fortune_qr", qr)
+        .maybeSingle();
 
-      if (error) {
-        console.error("Error al consultar Supabase:", error);
-        resultado.innerHTML = "<span class='invalido'>Error al consultar la base de datos.</span>";
-        return;
-      }
-
-      console.log("Resultado de la consulta:", data);
-
-      // 4️⃣ Mostrar resultado en la página
-      if (data.length > 0) {
-        resultado.innerHTML = "<span class='valido'>✅ QR válido. Registro encontrado.</span>";
+      if (error || !data) {
+        document.getElementById("mensaje").innerText = "❌ QR no válido o no encontrado";
       } else {
-        resultado.innerHTML = "<span class='invalido'>❌ QR no válido.</span>";
+        document.getElementById("fortune_qr").value = data.fortune_qr;
+        codigoTiendaOriginal = data.codigo_tienda;
+
+        if (data.nombre || data.email) {
+          document.getElementById("mensaje").innerText = "⚠️ Este código ya fue registrado.";
+        } else {
+          document.getElementById("registroForm").style.display = "block";
+          document.getElementById("mensaje").innerText = "✅ QR verificado, complete sus datos.";
+        }
       }
     }
 
+    document.getElementById("registroForm").addEventListener("submit", async function(e) {
+      e.preventDefault();
+
+      const codigoIngresado = document.getElementById("codigo_tienda").value.trim();
+      if (codigoIngresado !== codigoTiendaOriginal) {
+        document.getElementById("mensaje").innerText = "❌ Código de tienda incorrecto para este QR.";
+        return;
+      }
+
+      const { data: existing } = await supabaseClient
+        .from("certificaciones")
+        .select("cliente_id")
+        .eq("fortune_qr", document.getElementById("fortune_qr").value)
+        .maybeSingle();
+
+      const updateData = {
+        nombre: document.getElementById("nombre").value,
+        email: document.getElementById("email").value,
+        telefono: document.getElementById("telefono").value,
+        pais: document.getElementById("pais").value,
+        ciudad: document.getElementById("ciudad").value,
+        calle: document.getElementById("calle").value,
+        codigopostal: document.getElementById("codigopostal").value,
+        marca_temporal: new Date().toISOString()
+      };
+
+      if (!existing.cliente_id) {
+        updateData.cliente_id = crypto.randomUUID();
+      }
+
+      const { error } = await supabaseClient
+        .from("certificaciones")
+        .update(updateData)
+        .eq("fortune_qr", document.getElementById("fortune_qr").value);
+
+      if (error) {
+        document.getElementById("mensaje").innerText = "❌ Error al registrar: " + error.message;
+      } else {
+        document.getElementById("mensaje").innerText = "✅ Registro completado con éxito";
+        document.getElementById("registroForm").reset();
+        document.getElementById("registroForm").style.display = "none";
+      }
+    });
+
     verificarQR();
   </script>
-
 </body>
 </html>
