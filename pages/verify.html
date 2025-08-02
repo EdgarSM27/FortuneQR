@@ -1,48 +1,29 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <title>Verificación de QR</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-</head>
-<body>
-  <h1>Verificación de QR</h1>
-  <p id="status">Cargando...</p>
+<script type="module">
+  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
-  <script>
-    const supabaseUrl = "https://vyagabfmbyjcbslfdgua.supabase.co";
-    const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ5YWdhYmZtYnlqY2JzbGZkZ3VhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQwODk1NzIsImV4cCI6MjA2OTY2NTU3Mn0.oxIjeQSVR78X3Oi1jPg9sXYJI-YAlnMWm01VdxRHW0w";
-    const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+  const supabaseUrl = 'https://vyagabfmbyjcbslfdgua.supabase.co';
+  const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ5YWdhYmZtYnlqY2JzbGZkZ3VhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQwODk1NzIsImV4cCI6MjA2OTY2NTU3Mn0.oxIjeQSVR78X3Oi1jPg9sXYJI-YAlnMWm01VdxRHW0w';
 
-    // Obtener el ID desde la URL
-    const params = new URLSearchParams(window.location.search);
-    const qrId = params.get("id");
+  const supabase = createClient(supabaseUrl, supabaseKey);
 
-    async function verifyQR() {
-      const status = document.getElementById("status");
+  // Tomamos el parámetro ?id= de la URL
+  const urlParams = new URLSearchParams(window.location.search);
+  const qrId = urlParams.get('id');
 
-      // 🔹 Mostrar todos los QR disponibles en consola para debug
-      const allData = await supabaseClient.from("certificaciones").select("*");
-      console.log("Todos los registros en certificaciones:", allData.data);
+  console.log("Buscando QR:", qrId);
 
-      // 🔹 Buscar el QR específico
-      const { data, error } = await supabaseClient
-        .from("certificaciones")
-        .select("*")
-        .eq("fortune_qr", qrId)
-        .single();
+  async function verificarQR() {
+    const { data, error } = await supabase
+      .from('certificaciones')
+      .select('*')
+      .eq('fortune_qr', qrId);
 
-      if (error) {
-        console.error("Error en la consulta:", error);
-        status.innerText = "Error al verificar el QR.";
-      } else if (data) {
-        status.innerText = `✅ QR válido. Datos: ${JSON.stringify(data)}`;
-      } else {
-        status.innerText = "QR no válido.";
-      }
+    if (error) {
+      console.error("Error al consultar Supabase:", error);
+    } else {
+      console.log("Resultado de la consulta:", data);
     }
+  }
 
-    verifyQR();
-  </script>
-</body>
-</html>
+  verificarQR();
+</script>
