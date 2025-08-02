@@ -1,29 +1,66 @@
-<script type="module">
-  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Verificación de QR</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; }
+    h1 { color: #333; }
+    .valido { color: green; font-weight: bold; }
+    .invalido { color: red; font-weight: bold; }
+  </style>
+</head>
+<body>
 
-  const supabaseUrl = 'https://vyagabfmbyjcbslfdgua.supabase.co';
-  const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ5YWdhYmZtYnlqY2JzbGZkZ3VhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQwODk1NzIsImV4cCI6MjA2OTY2NTU3Mn0.oxIjeQSVR78X3Oi1jPg9sXYJI-YAlnMWm01VdxRHW0w';
+  <h1>Verificación de QR</h1>
+  <p id="resultado">Cargando...</p>
 
-  const supabase = createClient(supabaseUrl, supabaseKey);
+  <script>
+    // 1️⃣ Configuración de Supabase
+    const SUPABASE_URL = "https://vyagabfmbyjcbslfdgua.supabase.co";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ5YWdhYmZtYnlqY2JzbGZkZ3VhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQwODk1NzIsImV4cCI6MjA2OTY2NTU3Mn0.oxIjeQSVR78X3Oi1jPg9sXYJI-YAlnMWm01VdxRHW0w";
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-  // Tomamos el parámetro ?id= de la URL
-  const urlParams = new URLSearchParams(window.location.search);
-  const qrId = urlParams.get('id');
+    // 2️⃣ Leer el ID desde la URL
+    const params = new URLSearchParams(window.location.search);
+    const qrId = (params.get('id') || "").trim(); // elimina espacios
+    console.log("Buscando QR:", qrId);
 
-  console.log("Buscando QR:", qrId);
+    const resultado = document.getElementById("resultado");
 
-  async function verificarQR() {
-    const { data, error } = await supabase
-      .from('certificaciones')
-      .select('*')
-      .eq('fortune_qr', qrId);
+    // 3️⃣ Función para verificar QR
+    async function verificarQR() {
+      if (!qrId) {
+        resultado.innerHTML = "<span class='invalido'>QR no válido.</span>";
+        return;
+      }
 
-    if (error) {
-      console.error("Error al consultar Supabase:", error);
-    } else {
+      // Consulta usando ilike para evitar problemas de mayúsculas
+      const { data, error } = await supabase
+        .from('certificaciones')
+        .select('*')
+        .ilike('fortune_qr', qrId);
+
+      if (error) {
+        console.error("Error al consultar Supabase:", error);
+        resultado.innerHTML = "<span class='invalido'>Error al consultar la base de datos.</span>";
+        return;
+      }
+
       console.log("Resultado de la consulta:", data);
-    }
-  }
 
-  verificarQR();
-</script>
+      // 4️⃣ Mostrar resultado en la página
+      if (data.length > 0) {
+        resultado.innerHTML = "<span class='valido'>✅ QR válido. Registro encontrado.</span>";
+      } else {
+        resultado.innerHTML = "<span class='invalido'>❌ QR no válido.</span>";
+      }
+    }
+
+    verificarQR();
+  </script>
+
+</body>
+</html>
