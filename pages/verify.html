@@ -2,127 +2,161 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Registro de Compra</title>
+  <title>Verifica tu Fortune Hands</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, #74b9ff, #a29bfe);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: flex-start;
-      min-height: 100vh;
+      font-family: 'Helvetica Neue', Arial, sans-serif;
       margin: 0;
-      padding-top: 50px;
+      padding: 0;
+      background: #fff;
+      color: #333;
+    }
+
+    .container {
+      max-width: 400px;
+      margin: 80px auto;
+      text-align: center;
     }
 
     h1 {
-      color: white;
-      margin-bottom: 20px;
-      text-shadow: 1px 1px 3px rgba(0,0,0,0.2);
+      font-weight: 500;
+      font-size: 22px;
+      margin-bottom: 5px;
     }
 
-    #registroForm {
-      background: white;
-      padding: 30px 40px;
-      border-radius: 12px;
-      box-shadow: 0 5px 20px rgba(0,0,0,0.2);
-      width: 320px;
+    h1 span {
+      font-size: 22px;
+    }
+
+    p {
+      margin: 0 0 20px;
+      color: #555;
+      font-size: 14px;
+    }
+
+    form {
       display: none;
-      animation: fadeIn 0.5s ease-in-out;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(-10px); }
-      to { opacity: 1; transform: translateY(0); }
+      text-align: left;
     }
 
     label {
-      font-weight: 600;
       display: block;
-      margin-top: 15px;
-      color: #2d3436;
+      font-size: 13px;
+      margin: 15px 0 5px;
+      color: #333;
     }
 
-    input {
+    input, select {
       width: 100%;
       padding: 10px;
-      margin-top: 5px;
-      border: 1px solid #dcdde1;
-      border-radius: 8px;
+      border: 1px solid #ccc;
+      border-radius: 3px;
       font-size: 14px;
-      transition: all 0.3s ease;
+      box-sizing: border-box;
     }
 
-    input:focus {
-      border-color: #74b9ff;
+    input:focus, select:focus {
       outline: none;
-      box-shadow: 0 0 5px rgba(116, 185, 255, 0.5);
+      border-color: #000;
     }
 
     button {
-      margin-top: 20px;
       width: 100%;
-      background: #0984e3;
-      color: white;
+      background: #000;
+      color: #fff;
       padding: 12px;
+      margin-top: 20px;
       border: none;
-      border-radius: 8px;
-      font-size: 16px;
-      font-weight: 600;
+      border-radius: 3px;
+      font-size: 14px;
       cursor: pointer;
-      transition: background 0.3s ease;
+      transition: 0.3s;
     }
 
     button:hover {
-      background: #74b9ff;
+      background: #444;
     }
 
     #mensaje {
       margin-top: 20px;
-      font-weight: bold;
+      font-weight: 500;
+      font-size: 14px;
       text-align: center;
-      color: white;
-      max-width: 300px;
-      text-shadow: 1px 1px 3px rgba(0,0,0,0.2);
     }
   </style>
 </head>
 <body>
-  <h1>Registro de Compra</h1>
+  <div class="container">
+    <h1>Verifica tu Fortune Hands <span>🍀</span></h1>
 
-  <form id="registroForm">
-    <input type="hidden" id="fortune_qr">
+    <form id="registroForm">
+      <input type="hidden" id="fortune_qr">
 
-    <label>Código de Tienda:</label>
-    <input type="text" id="codigo_tienda_input" required>
+      <label for="codigo_tienda_input">Código de Tienda:</label>
+      <input type="text" id="codigo_tienda_input" placeholder="FH-XXXXX" required>
 
-    <label>Nombre:</label>
-    <input type="text" id="nombre" required>
+      <label for="nombre">Nombre:</label>
+      <input type="text" id="nombre" required>
 
-    <label>Email:</label>
-    <input type="email" id="email" required>
+      <label for="email">Email:</label>
+      <input type="email" id="email" required>
 
-    <label>Teléfono:</label>
-    <input type="text" id="telefono">
+      <label for="telefono">Teléfono:</label>
+      <input type="text" id="telefono">
 
-    <label>País:</label>
-    <input type="text" id="pais">
+      <label for="pais">País:</label>
+      <select id="pais" required>
+        <option value="">Selecciona un país</option>
+        <option value="Afganistán">Afganistán</option>
+        <option value="Alemania">Alemania</option>
+        <option value="Argentina">Argentina</option>
+        <option value="Australia">Australia</option>
+        <option value="Brasil">Brasil</option>
+        <option value="Canadá">Canadá</option>
+        <option value="Chile">Chile</option>
+        <option value="China">China</option>
+        <option value="Colombia">Colombia</option>
+        <option value="Costa Rica">Costa Rica</option>
+        <option value="Cuba">Cuba</option>
+        <option value="Dinamarca">Dinamarca</option>
+        <option value="Ecuador">Ecuador</option>
+        <option value="Egipto">Egipto</option>
+        <option value="El Salvador">El Salvador</option>
+        <option value="España">España</option>
+        <option value="Estados Unidos">Estados Unidos</option>
+        <option value="Francia">Francia</option>
+        <option value="Guatemala">Guatemala</option>
+        <option value="Honduras">Honduras</option>
+        <option value="India">India</option>
+        <option value="Italia">Italia</option>
+        <option value="Japón">Japón</option>
+        <option value="México">México</option>
+        <option value="Panamá">Panamá</option>
+        <option value="Paraguay">Paraguay</option>
+        <option value="Perú">Perú</option>
+        <option value="Portugal">Portugal</option>
+        <option value="Reino Unido">Reino Unido</option>
+        <option value="República Dominicana">República Dominicana</option>
+        <option value="Uruguay">Uruguay</option>
+        <option value="Venezuela">Venezuela</option>
+        <!-- Puedes agregar todos los países que necesites -->
+      </select>
 
-    <label>Ciudad:</label>
-    <input type="text" id="ciudad">
+      <label for="ciudad">Ciudad:</label>
+      <input type="text" id="ciudad">
 
-    <label>Calle:</label>
-    <input type="text" id="calle">
+      <label for="calle">Calle:</label>
+      <input type="text" id="calle">
 
-    <label>Código Postal:</label>
-    <input type="text" id="codigopostal">
+      <label for="codigopostal">Código Postal:</label>
+      <input type="text" id="codigopostal">
 
-    <button type="submit">Registrar Compra</button>
-  </form>
+      <button type="submit">Verificar</button>
+    </form>
 
-  <p id="mensaje"></p>
+    <p id="mensaje"></p>
+  </div>
 
   <script>
     const supabaseUrl = "https://vyagabfmbyjcbslfdgua.supabase.co";
