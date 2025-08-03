@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Registro de Compra</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #74b9ff, #a29bfe);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      min-height: 100vh;
+      margin: 0;
+      padding-top: 50px;
+    }
+
+    h1 {
+      color: white;
+      margin-bottom: 20px;
+      text-shadow: 1px 1px 3px rgba(0,0,0,0.2);
+    }
+
+    #registroForm {
+      background: white;
+      padding: 30px 40px;
+      border-radius: 12px;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+      width: 320px;
+      display: none;
+      animation: fadeIn 0.5s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    label {
+      font-weight: 600;
+      display: block;
+      margin-top: 15px;
+      color: #2d3436;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      border: 1px solid #dcdde1;
+      border-radius: 8px;
+      font-size: 14px;
+      transition: all 0.3s ease;
+    }
+
+    input:focus {
+      border-color: #74b9ff;
+      outline: none;
+      box-shadow: 0 0 5px rgba(116, 185, 255, 0.5);
+    }
+
+    button {
+      margin-top: 20px;
+      width: 100%;
+      background: #0984e3;
+      color: white;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    button:hover {
+      background: #74b9ff;
+    }
+
+    #mensaje {
+      margin-top: 20px;
+      font-weight: bold;
+      text-align: center;
+      color: white;
+      max-width: 300px;
+      text-shadow: 1px 1px 3px rgba(0,0,0,0.2);
+    }
+  </style>
+</head>
+<body>
+  <h1>Registro de Compra</h1>
+
+  <form id="registroForm">
+    <input type="hidden" id="fortune_qr">
+
+    <label>Código de Tienda:</label>
+    <input type="text" id="codigo_tienda_input" required>
+
+    <label>Nombre:</label>
+    <input type="text" id="nombre" required>
+
+    <label>Email:</label>
+    <input type="email" id="email" required>
+
+    <label>Teléfono:</label>
+    <input type="text" id="telefono">
+
+    <label>País:</label>
+    <input type="text" id="pais">
+
+    <label>Ciudad:</label>
+    <input type="text" id="ciudad">
+
+    <label>Calle:</label>
+    <input type="text" id="calle">
+
+    <label>Código Postal:</label>
+    <input type="text" id="codigopostal">
+
+    <button type="submit">Registrar Compra</button>
+  </form>
+
+  <p id="mensaje"></p>
+
+  <script>
+    const supabaseUrl = "https://vyagabfmbyjcbslfdgua.supabase.co";
+    const supabaseKey = "sb_publishable_9fDuHl5nKR_yf1RnQ95JBA_Sb_jGK8B";
+    const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+
+    const params = new URLSearchParams(window.location.search);
+    const qr = params.get("fortune_qr");
+
+    let codigoTiendaAsignado = "";
+
+    async function verificarQR() {
+      if (!qr) {
+        document.getElementById("mensaje").innerText = "❌ QR inválido o faltante";
+        return;
+      }
+
+      const { data, error } = await supabaseClient
+        .from("certificaciones")
+        .select("*")
+        .eq("fortune_qr", qr)
+        .maybeSingle();
+
+      if (error || !data) {
+        document.getElementById("mensaje").innerText = "❌ QR no válido o no encontrado";
+      } else if (data.nombre && data.email) {
+        document.getElementById("mensaje").innerText = "⚠️ Este QR ya fue registrado previamente.";
+      } else {
+        codigoTiendaAsignado = data.codigo_tienda;
+        document.getElementById("fortune_qr").value = data.fortune_qr;
+        document.getElementById("registroForm").style.display = "block";
+        document.getElementById("mensaje").innerText = "✅ QR verificado, complete sus datos.";
+      }
+    }
+
+    function generarClienteID() {
+      const numeros = Math.floor(10000000 + Math.random() * 90000000); 
+      return `QR-${numeros}`;
+    }
+
+    document.getElementById("registroForm").addEventListener("submit", async function(e) {
+      e.preventDefault();
+
+      const codigoIngresado = document.getElementById("codigo_tienda_input").value;
+      if (codigoIngresado !== codigoTiendaAsignado) {
+        document.getElementById("mensaje").innerText = "❌ El código de tienda no coincide con este QR.";
+        return;
+      }
+
+      const nuevoClienteID = generarClienteID();
+
+      const { error } = await supabaseClient
+        .from("certificaciones")
+        .update({
+          cliente_id: nuevoClienteID,
+          nombre: document.getElementById("nombre").value,
+          email: document.getElementById("email").value,
+          telefono: document.getElementById("telefono").value,
+          pais: document.getElementById("pais").value,
+          ciudad: document.getElementById("ciudad").value,
+          calle: document.getElementById("calle").value,
+          codigopostal: document.getElementById("codigopostal").value,
+          marca_temporal: new Date().toISOString()
+        })
+        .eq("fortune_qr", qr);
+
+      if (error) {
+        document.getElementById("mensaje").innerText = "❌ Error al registrar: " + error.message;
+      } else {
+        document.getElementById("mensaje").innerText = "✅ Registro completado con éxito";
+        document.getElementById("registroForm").reset();
+        document.getElementById("registroForm").style.display = "none";
+      }
+    });
+
+    verificarQR();
+  </script>
+</body>
+</html>
