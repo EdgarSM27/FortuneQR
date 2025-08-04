@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Certifica tu Fortune Hands</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     body {
@@ -11,32 +12,32 @@
       padding: 0;
       background: #fff;
       color: #333;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
     }
 
     .container {
+      width: 90%;
       max-width: 400px;
-      margin: 80px auto;
       text-align: center;
     }
 
     h1 {
       font-weight: 500;
       font-size: 22px;
-      margin-bottom: 10px;
+      margin-bottom: 30px;
     }
 
     h1 span {
       font-size: 22px;
     }
 
-    p {
-      margin: 0 0 20px;
-      color: #555;
-      font-size: 14px;
-    }
-
     form {
       text-align: left;
+      display: none;
+      animation: fadeIn 0.5s ease;
     }
 
     label {
@@ -50,7 +51,7 @@
       width: 100%;
       padding: 12px;
       border: 1px solid #ccc;
-      border-radius: 3px;
+      border-radius: 6px;
       font-size: 14px;
       box-sizing: border-box;
       margin-bottom: 12px;
@@ -65,11 +66,12 @@
       width: 100%;
       background: #000;
       color: #fff;
-      padding: 12px;
+      padding: 14px;
       border: none;
-      border-radius: 25px;
+      border-radius: 30px;
       font-size: 14px;
       cursor: pointer;
+      margin-top: 10px;
       transition: 0.3s;
     }
 
@@ -84,59 +86,64 @@
       text-align: center;
     }
 
-    .hidden {
-      display: none;
+    /* Animación simple */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Responsive extra para pantallas muy pequeñas */
+    @media (max-width: 400px) {
+      h1 {
+        font-size: 18px;
+      }
+      button {
+        padding: 12px;
+        font-size: 13px;
+      }
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <!-- PASO 1: VALIDACIÓN QR -->
-    <div id="step1">
-      <h1>Certifica tu Fortune Hands <span>🍀</span></h1>
+    <h1>Certifica tu Fortune Hands <span>🍀</span></h1>
 
-      <form id="verificacionForm">
-        <label for="fortune_qr_input">Código de pulsera (FortuneQR):</label>
-        <input type="text" id="fortune_qr_input" readonly>
+    <!-- Paso 1: Validación de QR y código de tienda -->
+    <form id="verificacionForm" style="display:block;">
+      <label for="codigo_tienda_input">Código de Tienda:</label>
+      <input type="text" id="codigo_tienda_input" placeholder="FH-XXXXX" required>
+      <button type="submit">Validar códigos</button>
+    </form>
 
-        <label for="codigo_tienda_input">Código de tienda:</label>
-        <input type="text" id="codigo_tienda_input" placeholder="FH-XXXXX" required>
+    <!-- Paso 2: Formulario completo -->
+    <form id="registroForm">
+      <input type="hidden" id="fortune_qr">
 
-        <button type="submit">Validar códigos</button>
-      </form>
-    </div>
+      <label for="nombre">Nombre:</label>
+      <input type="text" id="nombre" required>
 
-    <!-- PASO 2: FORMULARIO COMPLETO -->
-    <div id="step2" class="hidden">
-      <h1>Completa tu registro</h1>
+      <label for="email">Email:</label>
+      <input type="email" id="email" required>
 
-      <form id="registroForm">
-        <input type="hidden" id="fortune_qr">
+      <label for="telefono">Teléfono:</label>
+      <input type="text" id="telefono">
 
-        <label for="nombre">Nombre:</label>
-        <input type="text" id="nombre" required>
+      <label for="pais">País:</label>
+      <select id="pais" required>
+        <option value="">Selecciona un país</option>
+      </select>
 
-        <label for="email">Email:</label>
-        <input type="email" id="email" required>
+      <label for="ciudad">Ciudad:</label>
+      <input type="text" id="ciudad" required>
 
-        <label for="telefono">Teléfono:</label>
-        <input type="text" id="telefono">
+      <label for="calle">Calle:</label>
+      <input type="text" id="calle">
 
-        <label for="pais">País:</label>
-        <select id="pais" required></select>
+      <label for="codigopostal">Código Postal:</label>
+      <input type="text" id="codigopostal">
 
-        <label for="ciudad">Ciudad:</label>
-        <input type="text" id="ciudad">
-
-        <label for="calle">Calle:</label>
-        <input type="text" id="calle">
-
-        <label for="codigopostal">Código Postal:</label>
-        <input type="text" id="codigopostal">
-
-        <button type="submit">Registrar</button>
-      </form>
-    </div>
+      <button type="submit">Registrar compra</button>
+    </form>
 
     <p id="mensaje"></p>
   </div>
@@ -148,29 +155,9 @@
 
     const params = new URLSearchParams(window.location.search);
     const qr = params.get("fortune_qr");
-    document.getElementById("fortune_qr_input").value = qr || "No detectado";
-
     let codigoTiendaAsignado = "";
 
-    // Cargar países
-    const paises = ["México","Argentina","Chile","Colombia","Perú","España","Estados Unidos","Canadá","Brasil","Alemania","Francia","Italia","Japón"];
-    const selectPais = document.getElementById("pais");
-    paises.forEach(p => {
-      const option = document.createElement("option");
-      option.value = p;
-      option.textContent = p;
-      selectPais.appendChild(option);
-    });
-
-    // Paso 1: Validación
-    document.getElementById("verificacionForm").addEventListener("submit", async function(e){
-      e.preventDefault();
-
-      if (!qr) {
-        document.getElementById("mensaje").innerText = "❌ QR inválido o faltante";
-        return;
-      }
-
+    async function verificarQR(codigoIngresado) {
       const { data, error } = await supabaseClient
         .from("certificaciones")
         .select("*")
@@ -179,33 +166,35 @@
 
       if (error || !data) {
         document.getElementById("mensaje").innerText = "❌ QR no válido o no encontrado";
+        return false;
       } else if (data.nombre && data.email) {
         document.getElementById("mensaje").innerText = "⚠️ Este QR ya fue registrado previamente.";
+        return false;
+      } else if (codigoIngresado !== data.codigo_tienda) {
+        document.getElementById("mensaje").innerText = "❌ El código de tienda no coincide.";
+        return false;
       } else {
         codigoTiendaAsignado = data.codigo_tienda;
-        const codigoIngresado = document.getElementById("codigo_tienda_input").value;
-
-        if (codigoIngresado !== codigoTiendaAsignado) {
-          document.getElementById("mensaje").innerText = "❌ El código de tienda no coincide con este QR.";
-          return;
-        }
-
-        // Pasar al paso 2
         document.getElementById("fortune_qr").value = data.fortune_qr;
-        document.getElementById("step1").classList.add("hidden");
-        document.getElementById("step2").classList.remove("hidden");
-        document.getElementById("mensaje").innerText = "✅ Códigos validados, complete su registro.";
+        document.getElementById("verificacionForm").style.display = "none";
+        document.getElementById("registroForm").style.display = "block";
+        document.getElementById("mensaje").innerText = "✅ QR verificado, complete sus datos.";
+        return true;
       }
+    }
+
+    document.getElementById("verificacionForm").addEventListener("submit", async function(e){
+      e.preventDefault();
+      const codigoIngresado = document.getElementById("codigo_tienda_input").value;
+      await verificarQR(codigoIngresado);
     });
 
-    // Generar cliente ID
     function generarClienteID() {
       const numeros = Math.floor(10000000 + Math.random() * 90000000); 
       return `QR-${numeros}`;
     }
 
-    // Paso 2: Registro final
-    document.getElementById("registroForm").addEventListener("submit", async function(e) {
+    document.getElementById("registroForm").addEventListener("submit", async function(e){
       e.preventDefault();
 
       const nuevoClienteID = generarClienteID();
@@ -230,8 +219,18 @@
       } else {
         document.getElementById("mensaje").innerText = "✅ Registro completado con éxito";
         document.getElementById("registroForm").reset();
-        document.getElementById("step2").classList.add("hidden");
+        document.getElementById("registroForm").style.display = "none";
       }
+    });
+
+    // Cargar lista de países
+    const paisSelect = document.getElementById("pais");
+    const paises = ["México","Argentina","Chile","Colombia","Perú","España","Estados Unidos","Canadá"];
+    paises.forEach(pais => {
+      const option = document.createElement("option");
+      option.value = pais;
+      option.textContent = pais;
+      paisSelect.appendChild(option);
     });
   </script>
 </body>
