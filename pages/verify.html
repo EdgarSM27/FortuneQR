@@ -3,146 +3,117 @@
 <head>
   <meta charset="UTF-8">
   <title>Certifica tu Fortune Hands</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     body {
-      font-family: 'Helvetica Neue', Arial, sans-serif;
-      margin: 0;
-      padding: 0;
-      background: #fff;
-      color: #333;
       display: flex;
       justify-content: center;
       align-items: center;
       min-height: 100vh;
+      background-color: #f9f9f9;
+      font-family: 'Helvetica Neue', Arial, sans-serif;
     }
 
-    .container {
+    .card {
+      background: white;
+      border-radius: 20px;
+      padding: 40px 30px;
       width: 90%;
       max-width: 400px;
       text-align: center;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.05);
     }
 
-    h1 {
+    .card h2 {
       font-weight: 500;
       font-size: 22px;
-      margin-bottom: 30px;
-    }
-
-    h1 span {
-      font-size: 22px;
-    }
-
-    form {
-      text-align: left;
-      display: none;
-      animation: fadeIn 0.5s ease;
-    }
-
-    label {
-      display: block;
-      font-size: 13px;
-      margin: 15px 0 5px;
-      color: #333;
+      margin-bottom: 20px;
     }
 
     input, select {
       width: 100%;
       padding: 12px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
+      margin: 12px 0;
       font-size: 14px;
-      box-sizing: border-box;
-      margin-bottom: 12px;
+      border: none;
+      border-bottom: 1px solid #ddd;
+      background: transparent;
+      outline: none;
+      transition: border-color 0.3s;
     }
 
     input:focus, select:focus {
-      outline: none;
       border-color: #000;
+    }
+
+    select {
+      appearance: none;
+      cursor: pointer;
     }
 
     button {
       width: 100%;
-      background: #000;
-      color: #fff;
-      padding: 14px;
+      padding: 12px;
+      margin-top: 20px;
       border: none;
       border-radius: 30px;
-      font-size: 14px;
+      background-color: black;
+      color: gold;
+      font-weight: bold;
       cursor: pointer;
-      margin-top: 10px;
-      transition: 0.3s;
+      transition: transform 0.2s ease;
     }
 
     button:hover {
-      background: #444;
+      transform: translateY(-2px);
     }
 
-    #mensaje {
-      margin-top: 20px;
-      font-weight: 500;
+    #registroForm { display: none; margin-top: 20px; }
+    #mensaje { margin-top: 15px; font-weight: bold; font-size: 14px; }
+
+    #codigoQR {
+      margin-bottom: 10px;
       font-size: 14px;
-      text-align: center;
-    }
-
-    /* Animación simple */
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    /* Responsive extra para pantallas muy pequeñas */
-    @media (max-width: 400px) {
-      h1 {
-        font-size: 18px;
-      }
-      button {
-        padding: 12px;
-        font-size: 13px;
-      }
+      color: #666;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Certifica tu Fortune Hands <span>🍀</span></h1>
-
-    <!-- Paso 1: Validación de QR y código de tienda -->
-    <form id="verificacionForm" style="display:block;">
-      <label for="codigo_tienda_input">Código de Tienda:</label>
-      <input type="text" id="codigo_tienda_input" placeholder="FH-XXXXX" required>
+  <div class="card">
+    <h2>Certifica tu Fortune Hands 🍀</h2>
+    <p id="codigoQR"></p>
+    <form id="validarForm">
+      <input type="text" id="fortuneQRInput" placeholder="Código de pulsera (FortuneQR)" readonly>
+      <input type="text" id="codigo_tienda_input" placeholder="Código de tienda" required>
       <button type="submit">Validar códigos</button>
     </form>
 
-    <!-- Paso 2: Formulario completo -->
     <form id="registroForm">
-      <input type="hidden" id="fortune_qr">
+      <input type="text" id="nombre" placeholder="Nombre completo" required>
+      <input type="email" id="email" placeholder="Correo electrónico" required>
+      <input type="text" id="telefono" placeholder="Teléfono">
 
-      <label for="nombre">Nombre:</label>
-      <input type="text" id="nombre" required>
-
-      <label for="email">Email:</label>
-      <input type="email" id="email" required>
-
-      <label for="telefono">Teléfono:</label>
-      <input type="text" id="telefono">
-
-      <label for="pais">País:</label>
       <select id="pais" required>
-        <option value="">Selecciona un país</option>
+        <option value="">Seleccione un país</option>
+        <option value="México">México</option>
+        <option value="Estados Unidos">Estados Unidos</option>
+        <option value="Canadá">Canadá</option>
+        <option value="España">España</option>
+        <option value="Argentina">Argentina</option>
+        <option value="Colombia">Colombia</option>
+        <option value="Chile">Chile</option>
+        <option value="Perú">Perú</option>
+        <option value="Brasil">Brasil</option>
+        <option value="Alemania">Alemania</option>
+        <option value="Francia">Francia</option>
+        <option value="Italia">Italia</option>
+        <option value="Reino Unido">Reino Unido</option>
       </select>
 
-      <label for="ciudad">Ciudad:</label>
-      <input type="text" id="ciudad" required>
-
-      <label for="calle">Calle:</label>
-      <input type="text" id="calle">
-
-      <label for="codigopostal">Código Postal:</label>
-      <input type="text" id="codigopostal">
-
-      <button type="submit">Registrar compra</button>
+      <input type="text" id="ciudad" placeholder="Ciudad">
+      <input type="text" id="calle" placeholder="Calle">
+      <input type="text" id="codigopostal" placeholder="Código Postal">
+      <button type="submit">Registrar Compra</button>
     </form>
 
     <p id="mensaje"></p>
@@ -150,14 +121,23 @@
 
   <script>
     const supabaseUrl = "https://vyagabfmbyjcbslfdgua.supabase.co";
-    const supabaseKey = "sb_publishable_9fDuHl5nKR_yf1RnQ95JBA_Sb_jGK8B";
+    const supabaseKey = "sb_publishable_9fDuHl5nKR_yf1RnQ95JBA_Sb_jGK8B"; 
     const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 
     const params = new URLSearchParams(window.location.search);
     const qr = params.get("fortune_qr");
     let codigoTiendaAsignado = "";
 
-    async function verificarQR(codigoIngresado) {
+    document.getElementById("fortuneQRInput").value = qr || "";
+    document.getElementById("codigoQR").innerText = qr ? `Código QR: ${qr}` : "❌ QR no encontrado en el enlace";
+
+    document.getElementById("validarForm").addEventListener("submit", async function(e) {
+      e.preventDefault();
+      if (!qr) {
+        document.getElementById("mensaje").innerText = "❌ QR inválido o faltante en la URL";
+        return;
+      }
+
       const { data, error } = await supabaseClient
         .from("certificaciones")
         .select("*")
@@ -166,27 +146,25 @@
 
       if (error || !data) {
         document.getElementById("mensaje").innerText = "❌ QR no válido o no encontrado";
-        return false;
-      } else if (data.nombre && data.email) {
-        document.getElementById("mensaje").innerText = "⚠️ Este QR ya fue registrado previamente.";
-        return false;
-      } else if (codigoIngresado !== data.codigo_tienda) {
-        document.getElementById("mensaje").innerText = "❌ El código de tienda no coincide.";
-        return false;
-      } else {
-        codigoTiendaAsignado = data.codigo_tienda;
-        document.getElementById("fortune_qr").value = data.fortune_qr;
-        document.getElementById("verificacionForm").style.display = "none";
-        document.getElementById("registroForm").style.display = "block";
-        document.getElementById("mensaje").innerText = "✅ QR verificado, complete sus datos.";
-        return true;
+        return;
       }
-    }
 
-    document.getElementById("verificacionForm").addEventListener("submit", async function(e){
-      e.preventDefault();
+      if (data.nombre && data.email) {
+        document.getElementById("mensaje").innerText = "⚠️ Este QR ya fue registrado previamente.";
+        return;
+      }
+
+      codigoTiendaAsignado = data.codigo_tienda;
       const codigoIngresado = document.getElementById("codigo_tienda_input").value;
-      await verificarQR(codigoIngresado);
+
+      if (codigoIngresado !== codigoTiendaAsignado) {
+        document.getElementById("mensaje").innerText = "❌ El código de tienda no coincide con este QR.";
+        return;
+      }
+
+      document.getElementById("mensaje").innerText = "✅ QR verificado, complete sus datos.";
+      document.getElementById("registroForm").style.display = "block";
+      document.getElementById("validarForm").style.display = "none";
     });
 
     function generarClienteID() {
@@ -194,11 +172,10 @@
       return `QR-${numeros}`;
     }
 
-    document.getElementById("registroForm").addEventListener("submit", async function(e){
+    document.getElementById("registroForm").addEventListener("submit", async function(e) {
       e.preventDefault();
 
       const nuevoClienteID = generarClienteID();
-
       const { error } = await supabaseClient
         .from("certificaciones")
         .update({
@@ -221,16 +198,6 @@
         document.getElementById("registroForm").reset();
         document.getElementById("registroForm").style.display = "none";
       }
-    });
-
-    // Cargar lista de países
-    const paisSelect = document.getElementById("pais");
-    const paises = ["México","Argentina","Chile","Colombia","Perú","España","Estados Unidos","Canadá"];
-    paises.forEach(pais => {
-      const option = document.createElement("option");
-      option.value = pais;
-      option.textContent = pais;
-      paisSelect.appendChild(option);
     });
   </script>
 </body>
