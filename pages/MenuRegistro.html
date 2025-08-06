@@ -1,0 +1,3402 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Generar Nuevo QR y Código de Tienda</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background-color: #f9f9f9;
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+    }
+    .card {
+      background: white;
+      border-radius: 20px;
+      padding: 40px 30px;
+      width: 90%;
+      max-width: 400px;
+      text-align: center;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.05);
+    }
+    .card h2 {
+      font-weight: 500;
+      font-size: 22px;
+      margin-bottom: 20px;
+    }
+    select {
+      width: 100%;
+      padding: 12px;
+      margin: 12px 0;
+      font-size: 14px;
+      border-radius: 5px;
+      border: 1px solid #ddd;
+      background: white;
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 20px;
+      border: none;
+      border-radius: 30px;
+      background-color: black;
+      color: gold;
+      font-weight: bold;
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+    button:hover {
+      transform: translateY(-2px);
+    }
+    #mensaje { 
+      margin-top: 15px; 
+      font-weight: bold; 
+      font-size: 14px; 
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>Generar Nuevo QR y Código de Tienda</h2>
+    <form id="generarForm">
+      <select id="tipoSelect" required>
+        <option value="">--Selecciona Tipo--</option>
+      </select>
+      <select id="nombreSelect" required disabled>
+        <option value="">--Selecciona Nombre--</option>
+      </select>
+      <button type="submit">Generar Códigos</button>
+    </form>
+    <p id="mensaje"></p>
+  </div>
+
+  <script>
+    const supabaseUrl = "https://vyagabfmbyjcbslfdgua.supabase.co";
+    const supabaseKey = "sb_publishable_9fDuHl5nKR_yf1RnQ95JBA_Sb_jGK8B"; 
+    const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+
+    // JSON de productos simplificado (puedes usar el completo si quieres)
+    const productos = [
+  {
+    "tipo": "Gorra",
+    "nombre": "Gorra Trebol Negra/Red Goma Verde",
+    "color": "Negra",
+    "detalle": "Red Goma Verde",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Spring Treboles Dorado/Dorado -Gold-",
+    "color": "Dorado",
+    "detalle": "Dorado -Gold-",
+    "talla": "M"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Spring Treboles Dorado/Dorado -Gold-",
+    "color": "Dorado",
+    "detalle": "Dorado -Gold-",
+    "talla": "CH"
+  },
+  {
+    "tipo": "Gorra",
+    "nombre": "Gorra Trebol Verde/Tela pin negro",
+    "color": "Verde",
+    "detalle": "Tela pin negro",
+    "talla": ""
+  },
+  {
+    "tipo": "Gorra",
+    "nombre": "Gorra Trebol Azul/Tela pin negro",
+    "color": "Azul",
+    "detalle": "Tela pin negro",
+    "talla": ""
+  },
+  {
+    "tipo": "Gorra",
+    "nombre": "Gorra Trebol Roja/Tela pin negro",
+    "color": "Roja",
+    "detalle": "Tela pin negro",
+    "talla": ""
+  },
+  {
+    "tipo": "Gorra",
+    "nombre": "Gorra Trebol Blanca/Tela pin negro",
+    "color": "Blanca",
+    "detalle": "Tela pin negro",
+    "talla": ""
+  },
+  {
+    "tipo": "Gorra",
+    "nombre": "Gorra Trebol Gris/Tela pin negro",
+    "color": "Gris",
+    "detalle": "Tela pin negro",
+    "talla": ""
+  },
+  {
+    "tipo": "Gorra",
+    "nombre": "Gorra Trebol Negra/Tela pin amarillo",
+    "color": "Negra",
+    "detalle": "Tela pin amarillo",
+    "talla": ""
+  },
+  {
+    "tipo": "Gorra",
+    "nombre": "Gorra Trebol Negra/Tela pin negro",
+    "color": "Negra",
+    "detalle": "Tela pin negro",
+    "talla": ""
+  },
+  {
+    "tipo": "Dije",
+    "nombre": "Dije Trebol Rosado/Zirconia -Rose Gold-",
+    "color": "Rosado",
+    "detalle": "Zirconia -Rose Gold-",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Bebe Spring Camo Negro/Rojo",
+    "color": "Negro",
+    "detalle": "Rojo",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Bebe Spring Camo Dorado/Rosa",
+    "color": "Dorado",
+    "detalle": "Rosa",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Spring Camo Dorado/Rosa",
+    "color": "Dorado",
+    "detalle": "Rosa",
+    "talla": "M"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Spring Camo Dorado/Rosa",
+    "color": "Dorado",
+    "detalle": "Rosa",
+    "talla": "CH"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Spring Camo Dorado/Azul",
+    "color": "Dorado",
+    "detalle": "Azul",
+    "talla": "CH"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Spring Camo Dorado/Azul",
+    "color": "Dorado",
+    "detalle": "Azul",
+    "talla": "M"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Spring Camo Dorado/Azul",
+    "color": "Dorado",
+    "detalle": "Azul",
+    "talla": "G"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Spring Camo Negro/Gris",
+    "color": "Negro",
+    "detalle": "Gris",
+    "talla": "CH"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Spring Camo Negro/Gris",
+    "color": "Negro",
+    "detalle": "Gris",
+    "talla": "M"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Spring Camo Negro/Gris",
+    "color": "Negro",
+    "detalle": "Gris",
+    "talla": "G"
+  },
+  {
+    "tipo": "Anillo",
+    "nombre": "Anillo Chico Trebol Negro/Negro",
+    "color": "Negro",
+    "detalle": "Negro",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Placer Acero/Negro",
+    "color": "Acero",
+    "detalle": "Negro",
+    "talla": "CH"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Spring Treboles Dorado/Fucsia",
+    "color": "Dorado",
+    "detalle": "Fucsia",
+    "talla": "M"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Spring Dorado/Negro GD -Clasica-",
+    "color": "Dorado",
+    "detalle": "Negro GD -Clasica-",
+    "talla": ""
+  },
+  {
+    "tipo": "Aretes",
+    "nombre": "Aretes Niña Trebol Acero/Turquesa",
+    "color": "Acero",
+    "detalle": "Turquesa",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Bebe Spring Treboles Dorado/Dorado -Gold-",
+    "color": "Dorado",
+    "detalle": "Dorado -Gold-",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Bebe Spring Treboles Dorado/Negro -Clasica-",
+    "color": "Dorado",
+    "detalle": "Negro -Clasica-",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Bebe Spring Treboles Dorado/Blanco",
+    "color": "Dorado",
+    "detalle": "Blanco",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Spring Treboles Dorado/Blanco CH  Stock",
+    "color": "Dorado",
+    "detalle": "Blanco CH  Stock",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Spring Acero/Negro",
+    "color": "Acero",
+    "detalle": "Negro",
+    "talla": "GD"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Spring Treboles Rosado/Rosado CH -Rose Gold-",
+    "color": "Rosado",
+    "detalle": "Rosado CH -Rose Gold-",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Spring Treboles Negro/Gris Oscuro",
+    "color": "Negro",
+    "detalle": "Gris Oscuro",
+    "talla": "GD"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Racing Negro/Azul Pitufo GD -Banderas-",
+    "color": "Negro",
+    "detalle": "Azul Pitufo GD -Banderas-",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Piel Dorado/Negro",
+    "color": "Dorado",
+    "detalle": "Negro",
+    "talla": "GD"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Piel Dorado/Rojo",
+    "color": "Dorado",
+    "detalle": "Rojo",
+    "talla": "GD"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Spring Dorado/Fucsia",
+    "color": "Dorado",
+    "detalle": "Fucsia",
+    "talla": "M"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Spring Negro/Gris",
+    "color": "Negro",
+    "detalle": "Gris",
+    "talla": "GD"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Spring Acero/Negro",
+    "color": "Acero",
+    "detalle": "Negro",
+    "talla": "M"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Spring Dorado/Rosa M  Stock",
+    "color": "Dorado",
+    "detalle": "Rosa M  Stock",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Spring Dorado/Blanco M  Stock",
+    "color": "Dorado",
+    "detalle": "Blanco M  Stock",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Spring Treboles Negro/Negro",
+    "color": "Negro",
+    "detalle": "Negro",
+    "talla": "CH"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Spring Treboles Negro/Gris M  Stock",
+    "color": "Negro",
+    "detalle": "Gris M  Stock",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Spring Treboles Acero/Blanco",
+    "color": "Acero",
+    "detalle": "Blanco",
+    "talla": "GD"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Spring Treboles Acero/Blanco",
+    "color": "Acero",
+    "detalle": "Blanco",
+    "talla": "M"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Spring Treboles Acero/Blanco",
+    "color": "Acero",
+    "detalle": "Blanco",
+    "talla": "CH"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Spring Treboles Acero/Negro",
+    "color": "Acero",
+    "detalle": "Negro",
+    "talla": "GD"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Spring Treboles Acero/Negro",
+    "color": "Acero",
+    "detalle": "Negro",
+    "talla": "M"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Spring Treboles Acero/Negro",
+    "color": "Acero",
+    "detalle": "Negro",
+    "talla": "CH"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Spring Treboles Negro/Gris",
+    "color": "Negro",
+    "detalle": "Gris",
+    "talla": "GD"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Spring Treboles Negro/Gris",
+    "color": "Negro",
+    "detalle": "Gris",
+    "talla": "CH"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Spring Treboles Negro/Amarillo",
+    "color": "Negro",
+    "detalle": "Amarillo",
+    "talla": "GD"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Spring Treboles Dorado/Blanco",
+    "color": "Dorado",
+    "detalle": "Blanco",
+    "talla": "M"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Spring Treboles Rosado/Rosado M -Rose Gold-",
+    "color": "Rosado",
+    "detalle": "Rosado M -Rose Gold-",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Spring Treboles Dorado/Rojo",
+    "color": "Dorado",
+    "detalle": "Rojo",
+    "talla": "GD"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Bebe Spring Treboles Rosado/Rosado - Rose Gold-",
+    "color": "Rosado",
+    "detalle": "Rosado - Rose Gold-",
+    "talla": ""
+  },
+  {
+    "tipo": "Aretes",
+    "nombre": "Aretes Dama Trebol Negro/Negro",
+    "color": "Negro",
+    "detalle": "Negro",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Trebol Rosado/Rosado Trebol Shine CH -Rose Gold-",
+    "color": "Rosado",
+    "detalle": "Rosado Trebol Shine CH -Rose Gold-",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Spring Dorado/Dorado -Gold- GD  Stock",
+    "color": "Dorado",
+    "detalle": "Dorado -Gold- GD  Stock",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Spring Dorado/Dorado -Gold- M  Stock",
+    "color": "Dorado",
+    "detalle": "Dorado -Gold- M  Stock",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Spring Rosado/Rosado M -Rose Gold-  Stock",
+    "color": "Rosado",
+    "detalle": "Rosado M -Rose Gold-  Stock",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Spring Treboles Dorado/Negro GD -Clasica-",
+    "color": "Dorado",
+    "detalle": "Negro GD -Clasica-",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Spring Treboles Dorado/Negro CH -Clasica-",
+    "color": "Dorado",
+    "detalle": "Negro CH -Clasica-",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Spring Treboles Dorado/Negro M -Clasica-  Stock",
+    "color": "Dorado",
+    "detalle": "Negro M -Clasica-  Stock",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Trebol Negro/Negro Trebol Gris",
+    "color": "Negro",
+    "detalle": "Negro Trebol Gris",
+    "talla": "GD"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Trebol Negro/Negro Trebol Gris",
+    "color": "Negro",
+    "detalle": "Negro Trebol Gris",
+    "talla": "CH"
+  },
+  {
+    "tipo": "Sandalias",
+    "nombre": "Sandalias Fortune Trebol Verde T-5.5mx, 39ce",
+    "color": "",
+    "detalle": "Sandalias Fortune Trebol Verde T-5.5mx, 39ce",
+    "talla": ""
+  },
+  {
+    "tipo": "Sandalias",
+    "nombre": "Sandalias Fortune Trebol Rojo T-8mx, 44ce",
+    "color": "",
+    "detalle": "Sandalias Fortune Trebol Rojo T-8mx, 44ce",
+    "talla": ""
+  },
+  {
+    "tipo": "Sandalias",
+    "nombre": "Sandalias Fortune Trebol Blanco T-8mx, 44ce",
+    "color": "",
+    "detalle": "Sandalias Fortune Trebol Blanco T-8mx, 44ce",
+    "talla": ""
+  },
+  {
+    "tipo": "Sandalias",
+    "nombre": "Sandalias Fortune Trebol Negro T-8mx, 44ce",
+    "color": "",
+    "detalle": "Sandalias Fortune Trebol Negro T-8mx, 44ce",
+    "talla": ""
+  },
+  {
+    "tipo": "Sandalias",
+    "nombre": "Sandalias Fortune Trebol Gris T-8mx, 44ce",
+    "color": "",
+    "detalle": "Sandalias Fortune Trebol Gris T-8mx, 44ce",
+    "talla": ""
+  },
+  {
+    "tipo": "Sandalias",
+    "nombre": "Sandalias Fortune Trebol Gris T-7.5mx, 43ce",
+    "color": "",
+    "detalle": "Sandalias Fortune Trebol Gris T-7.5mx, 43ce",
+    "talla": ""
+  },
+  {
+    "tipo": "Sandalias",
+    "nombre": "Sandalias Fortune Trebol Gris T-7mx, 42ce",
+    "color": "",
+    "detalle": "Sandalias Fortune Trebol Gris T-7mx, 42ce",
+    "talla": ""
+  },
+  {
+    "tipo": "Sandalias",
+    "nombre": "Sandalias Fortune Trebol Gris T-6.5mx, 41ce",
+    "color": "",
+    "detalle": "Sandalias Fortune Trebol Gris T-6.5mx, 41ce",
+    "talla": ""
+  },
+  {
+    "tipo": "Sandalias",
+    "nombre": "Sandalias Fortune Trebol Gris T-6mx, 40ce",
+    "color": "",
+    "detalle": "Sandalias Fortune Trebol Gris T-6mx, 40ce",
+    "talla": ""
+  },
+  {
+    "tipo": "Sandalias",
+    "nombre": "Sandalias Fortune Trebol Gris T-5mx, 39ce",
+    "color": "",
+    "detalle": "Sandalias Fortune Trebol Gris T-5mx, 39ce",
+    "talla": ""
+  },
+  {
+    "tipo": "Sandalias",
+    "nombre": "Sandalias Fortune Trebol Gris T-5mx, 38ce",
+    "color": "",
+    "detalle": "Sandalias Fortune Trebol Gris T-5mx, 38ce",
+    "talla": ""
+  },
+  {
+    "tipo": "Sandalias",
+    "nombre": "Sandalias Fortune Trebol Verde T-8mx, 44ce",
+    "color": "",
+    "detalle": "Sandalias Fortune Trebol Verde T-8mx, 44ce",
+    "talla": ""
+  },
+  {
+    "tipo": "Sandalias",
+    "nombre": "Sandalias Fortune Trebol Verde T-7.5mx, 43ce",
+    "color": "",
+    "detalle": "Sandalias Fortune Trebol Verde T-7.5mx, 43ce",
+    "talla": ""
+  },
+  {
+    "tipo": "Sandalias",
+    "nombre": "Sandalias Fortune Trebol Verde T-7mx, 42ce",
+    "color": "",
+    "detalle": "Sandalias Fortune Trebol Verde T-7mx, 42ce",
+    "talla": ""
+  },
+  {
+    "tipo": "Sandalias",
+    "nombre": "Sandalias Fortune Trebol Verde T-6.5mx, 41ce",
+    "color": "",
+    "detalle": "Sandalias Fortune Trebol Verde T-6.5mx, 41ce",
+    "talla": ""
+  },
+  {
+    "tipo": "Sandalias",
+    "nombre": "Sandalias Fortune Trebol Verde T-6mx, 40ce",
+    "color": "",
+    "detalle": "Sandalias Fortune Trebol Verde T-6mx, 40ce",
+    "talla": ""
+  },
+  {
+    "tipo": "Sandalias",
+    "nombre": "Sandalias Fortune Trebol Verde T-5mx, 38ce",
+    "color": "",
+    "detalle": "Sandalias Fortune Trebol Verde T-5mx, 38ce",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Racing Negro/Naranja G -Banderas-",
+    "color": "Negro",
+    "detalle": "Naranja G -Banderas-",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Racing Negro/Gris oscuro G -Banderas-",
+    "color": "Negro",
+    "detalle": "Gris oscuro G -Banderas-",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Racing Acero IP Negro/Verde G -Banderas-",
+    "color": "Negro",
+    "detalle": "Verde G -Banderas-",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Racing Negro/Azul G -Banderas-",
+    "color": "Negro",
+    "detalle": "Azul G -Banderas-",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Racing Negro/Blanco G -Banderas-",
+    "color": "Negro",
+    "detalle": "Blanco G -Banderas-",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Racing Negro/Gris G -Banderas-",
+    "color": "Negro",
+    "detalle": "Gris G -Banderas-",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Niño Trebol Negro/Gris",
+    "color": "Negro",
+    "detalle": "Gris",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Niño Trebol Negro/Rosa",
+    "color": "Negro",
+    "detalle": "Rosa",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Calavera Dorado/Rojo",
+    "color": "Dorado",
+    "detalle": "Rojo",
+    "talla": "GD"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Calavera Dorado/Azul",
+    "color": "Dorado",
+    "detalle": "Azul",
+    "talla": "GD"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Trebol Rosado/Rosado G -Rose Gold-",
+    "color": "Rosado",
+    "detalle": "Rosado G -Rose Gold-",
+    "talla": ""
+  },
+  {
+    "tipo": "Joyero",
+    "nombre": "Joyero Fortune Hands",
+    "color": "",
+    "detalle": "Joyero Fortune Hands",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Piel Serie II Acero/Rojo",
+    "color": "Acero",
+    "detalle": "Rojo",
+    "talla": "GD"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Piel Serie II Negro/Azul",
+    "color": "Negro",
+    "detalle": "Azul",
+    "talla": "GD"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera 3D. Trebol Dorado/Negro GD -Clasica-",
+    "color": "Dorado",
+    "detalle": "Negro GD -Clasica-",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera 3D. Trebol Rosado/Blanco",
+    "color": "Rosado",
+    "detalle": "Blanco",
+    "talla": "GD"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera 3D. Trebol Rosado/Blanco",
+    "color": "Rosado",
+    "detalle": "Blanco",
+    "talla": "CH"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera 3D. Trebol Negro/Gris",
+    "color": "Negro",
+    "detalle": "Gris",
+    "talla": "GD"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera 3D. Trebol Dorado/Rosa",
+    "color": "Dorado",
+    "detalle": "Rosa",
+    "talla": "CH"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera 3D. Trebol Dorado/Azul",
+    "color": "Dorado",
+    "detalle": "Azul",
+    "talla": "GD"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera 3D. Trebol Dorado/Rojo",
+    "color": "Dorado",
+    "detalle": "Rojo",
+    "talla": "GD"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera 3D. Trebol Dorado/Negro CH -Clasica-",
+    "color": "Dorado",
+    "detalle": "Negro CH -Clasica-",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Piel Dorado/Rojo",
+    "color": "Dorado",
+    "detalle": "Rojo",
+    "talla": "CH"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Piel Dorado/Negro",
+    "color": "Dorado",
+    "detalle": "Negro",
+    "talla": "CH"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Piel Dorado/Blanco",
+    "color": "Dorado",
+    "detalle": "Blanco",
+    "talla": "CH"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Piel Dorado/Azul",
+    "color": "Dorado",
+    "detalle": "Azul",
+    "talla": "GD"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Piel Dorado/Azul",
+    "color": "Dorado",
+    "detalle": "Azul",
+    "talla": "CH"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Spring Dorado/Dorado -Gold-",
+    "color": "Dorado",
+    "detalle": "Dorado -Gold-",
+    "talla": "CH"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Spring Rosado/Rosado CH -Rose Gold-",
+    "color": "Rosado",
+    "detalle": "Rosado CH -Rose Gold-",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Spring Dorado/Rosa",
+    "color": "Dorado",
+    "detalle": "Rosa",
+    "talla": "CH"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Spring Dorado/Negro CH -Clasica-",
+    "color": "Dorado",
+    "detalle": "Negro CH -Clasica-",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Spring Dorado/Negro M -Clasica-",
+    "color": "Dorado",
+    "detalle": "Negro M -Clasica-",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Spring Bicolor Negro/Negro/Blanco",
+    "color": "Negro",
+    "detalle": "Negro/Blanco",
+    "talla": "CH"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Spring Negro/Negro M  Stock",
+    "color": "Negro",
+    "detalle": "Negro M  Stock",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Spring Negro/Gris",
+    "color": "Negro",
+    "detalle": "Gris",
+    "talla": "M"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Spring Negro/Blanco",
+    "color": "Negro",
+    "detalle": "Blanco",
+    "talla": "M"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Spring Bicolor Negro/Negro/Blanco",
+    "color": "Negro",
+    "detalle": "Negro/Blanco",
+    "talla": "M"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Niño Spring Dorado/Rosa",
+    "color": "Dorado",
+    "detalle": "Rosa",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Niño Spring Dorado/Negro -Clasica-",
+    "color": "Dorado",
+    "detalle": "Negro -Clasica-",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Niño Spring Dorado/Rojo",
+    "color": "Dorado",
+    "detalle": "Rojo",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Niño Spring Rosado/Blanco",
+    "color": "Rosado",
+    "detalle": "Blanco",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Niño Spring Dorado/Blanco",
+    "color": "Dorado",
+    "detalle": "Blanco",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Niño Spring Dorado/Dorado -Gold-",
+    "color": "Dorado",
+    "detalle": "Dorado -Gold-",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Niño Spring Negro/Gris",
+    "color": "Negro",
+    "detalle": "Gris",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Niño Spring Negro/Rosa",
+    "color": "Negro",
+    "detalle": "Rosa",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Niño Spring Bicolor Negro/Negro/Gris",
+    "color": "Negro",
+    "detalle": "Negro/Gris",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Niño Spring Negro/Negro",
+    "color": "Negro",
+    "detalle": "Negro",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Niño Spring Rosado/Rosado -Rose Gold-",
+    "color": "Rosado",
+    "detalle": "Rosado -Rose Gold-",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Spring Dorado/Azul",
+    "color": "Dorado",
+    "detalle": "Azul",
+    "talla": "M"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Spring Dorado/Blanco",
+    "color": "Dorado",
+    "detalle": "Blanco",
+    "talla": "CH"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Spring Bicolor Negro/Negro/Gris",
+    "color": "Negro",
+    "detalle": "Negro/Gris",
+    "talla": "M"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Spring Dorado/Rojo",
+    "color": "Dorado",
+    "detalle": "Rojo",
+    "talla": "M"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Spring Negro/Azul",
+    "color": "Negro",
+    "detalle": "Azul",
+    "talla": "M"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Spring Bicolor Negro/Blanco/Rosa",
+    "color": "Negro",
+    "detalle": "Blanco/Rosa",
+    "talla": "CH"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Spring Negro/Blanco",
+    "color": "Negro",
+    "detalle": "Blanco",
+    "talla": "CH"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Spring Negro/Rojo",
+    "color": "Negro",
+    "detalle": "Rojo",
+    "talla": "M"
+  },
+  {
+    "tipo": "Aretes",
+    "nombre": "Aretes Niña Trebol Acero/Fucsia",
+    "color": "Acero",
+    "detalle": "Fucsia",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Iluminati Acero IP Negro/Dorado",
+    "color": "Negro",
+    "detalle": "Dorado",
+    "talla": "CH"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Iluminati Acero IP Negro/Dorado",
+    "color": "Negro",
+    "detalle": "Dorado",
+    "talla": "GD"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Trebol Rosado/Trebol Negro",
+    "color": "Rosado",
+    "detalle": "Trebol Negro",
+    "talla": "G"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Trebol Rosado/Trebol Negro",
+    "color": "Rosado",
+    "detalle": "Trebol Negro",
+    "talla": "CH"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Trebol Rosado/Trebol Blanco",
+    "color": "Rosado",
+    "detalle": "Trebol Blanco",
+    "talla": "G"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Trebol Rosado/Trebol Blanco",
+    "color": "Rosado",
+    "detalle": "Trebol Blanco",
+    "talla": "CH"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Trebol Rosado/Rosado CH -Rose Gold-",
+    "color": "Rosado",
+    "detalle": "Rosado CH -Rose Gold-",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Trebol Rosado/Rosa",
+    "color": "Rosado",
+    "detalle": "Rosa",
+    "talla": "GD"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Trebol Rosado/Rosa",
+    "color": "Rosado",
+    "detalle": "Rosa",
+    "talla": "CH"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Trebol Rosado/Negro",
+    "color": "Rosado",
+    "detalle": "Negro",
+    "talla": "GD"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Trebol Rosado/Negro",
+    "color": "Rosado",
+    "detalle": "Negro",
+    "talla": "CH"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Trebol Rosado/Blanco",
+    "color": "Rosado",
+    "detalle": "Blanco",
+    "talla": "GD"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Trebol Rosado/Blanco",
+    "color": "Rosado",
+    "detalle": "Blanco",
+    "talla": "CH"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Trebol Negro/Verde",
+    "color": "Negro",
+    "detalle": "Verde",
+    "talla": "GD"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Trebol Negro/Verde",
+    "color": "Negro",
+    "detalle": "Verde",
+    "talla": "CH"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Trebol Negro/Rosa",
+    "color": "Negro",
+    "detalle": "Rosa",
+    "talla": "CH"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Trebol Negro/Rojo",
+    "color": "Negro",
+    "detalle": "Rojo",
+    "talla": "GD"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Trebol Negro/Rojo",
+    "color": "Negro",
+    "detalle": "Rojo",
+    "talla": "CH"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Trebol Negro/Negro Trebol Verde",
+    "color": "Negro",
+    "detalle": "Negro Trebol Verde",
+    "talla": "G"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Trebol Negro/Negro Trebol Verde",
+    "color": "Negro",
+    "detalle": "Negro Trebol Verde",
+    "talla": "CH"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Trebol Negro/Negro Mate",
+    "color": "Negro",
+    "detalle": "Negro Mate",
+    "talla": "GD"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Trebol Negro/Negro Mate",
+    "color": "Negro",
+    "detalle": "Negro Mate",
+    "talla": "CH"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Trebol Negro/Negro GD -Shine-",
+    "color": "Negro",
+    "detalle": "Negro GD -Shine-",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Trebol Negro/Negro CH -Shine-",
+    "color": "Negro",
+    "detalle": "Negro CH -Shine-",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Trebol Negro/Naranja",
+    "color": "Negro",
+    "detalle": "Naranja",
+    "talla": "GD"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Trebol Negro/Naranja",
+    "color": "Negro",
+    "detalle": "Naranja",
+    "talla": "CH"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Trebol Negro/Gris",
+    "color": "Negro",
+    "detalle": "Gris",
+    "talla": "GD"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Trebol Negro/Gris",
+    "color": "Negro",
+    "detalle": "Gris",
+    "talla": "CH"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Trebol Negro/Fucsia",
+    "color": "Negro",
+    "detalle": "Fucsia",
+    "talla": "CH"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Trebol Negro/Blanco",
+    "color": "Negro",
+    "detalle": "Blanco",
+    "talla": "GD"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Trebol Negro/Blanco",
+    "color": "Negro",
+    "detalle": "Blanco",
+    "talla": "CH"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Trebol Negro/Azul",
+    "color": "Negro",
+    "detalle": "Azul",
+    "talla": "GD"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Trebol Negro/Azul Ch",
+    "color": "Negro",
+    "detalle": "Azul Ch",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Trebol Negro/Amarillo",
+    "color": "Negro",
+    "detalle": "Amarillo",
+    "talla": "GD"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Trebol Negro/Amarillo",
+    "color": "Negro",
+    "detalle": "Amarillo",
+    "talla": "CH"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Trebol Dorado/Verde",
+    "color": "Dorado",
+    "detalle": "Verde",
+    "talla": "GD"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Trebol Dorado/Verde",
+    "color": "Dorado",
+    "detalle": "Verde",
+    "talla": "CH"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Trebol Dorado/Turquesa GD -Tiffany-",
+    "color": "Dorado",
+    "detalle": "Turquesa GD -Tiffany-",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Trebol Dorado/Turquesa CH -Tiffany-",
+    "color": "Dorado",
+    "detalle": "Turquesa CH -Tiffany-",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Trebol Dorado/Rosa",
+    "color": "Dorado",
+    "detalle": "Rosa",
+    "talla": "CH"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Trebol Dorado/Rojo",
+    "color": "Dorado",
+    "detalle": "Rojo",
+    "talla": "GD"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Trebol Dorado/Rojo",
+    "color": "Dorado",
+    "detalle": "Rojo",
+    "talla": "CH"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Trebol Dorado/Negro GD -Clasica-  Stock",
+    "color": "Dorado",
+    "detalle": "Negro GD -Clasica-  Stock",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Trebol Dorado/Negro CH -Clasica-",
+    "color": "Dorado",
+    "detalle": "Negro CH -Clasica-",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Trebol Dorado/Fucsia",
+    "color": "Dorado",
+    "detalle": "Fucsia",
+    "talla": "CH"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Trebol Dorado/Dorado Trebol Verde",
+    "color": "Dorado",
+    "detalle": "Dorado Trebol Verde",
+    "talla": "G"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Trebol Dorado/Dorado Trebol Verde",
+    "color": "Dorado",
+    "detalle": "Dorado Trebol Verde",
+    "talla": "CH"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Trebol Dorado/Dorado Trebol Shine",
+    "color": "Dorado",
+    "detalle": "Dorado Trebol Shine",
+    "talla": "G"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Trebol Dorado/Dorado Trebol Shine",
+    "color": "Dorado",
+    "detalle": "Dorado Trebol Shine",
+    "talla": "CH"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Trebol Dorado/Dorado Trebol Negro",
+    "color": "Dorado",
+    "detalle": "Dorado Trebol Negro",
+    "talla": "G"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Trebol Dorado/Dorado GD -Gold-",
+    "color": "Dorado",
+    "detalle": "Dorado GD -Gold-",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Trebol Dorado/Dorado CH -Gold-",
+    "color": "Dorado",
+    "detalle": "Dorado CH -Gold-",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Trebol Dorado/Cereza CH -Cherry-",
+    "color": "Dorado",
+    "detalle": "Cereza CH -Cherry-",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Trebol Dorado/Cafe",
+    "color": "Dorado",
+    "detalle": "Cafe",
+    "talla": "GD"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Trebol Dorado/Cafe",
+    "color": "Dorado",
+    "detalle": "Cafe",
+    "talla": "CH"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Trebol Dorado/Blanco",
+    "color": "Dorado",
+    "detalle": "Blanco",
+    "talla": "GD"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Trebol Dorado/Blanco",
+    "color": "Dorado",
+    "detalle": "Blanco",
+    "talla": "CH"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Trebol Dorado/Azul",
+    "color": "Dorado",
+    "detalle": "Azul",
+    "talla": "GD"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Trebol Dorado/Azul",
+    "color": "Dorado",
+    "detalle": "Azul",
+    "talla": "CH"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Trebol Cafe Claro/Blanco",
+    "color": "Claro",
+    "detalle": "Blanco",
+    "talla": "CH"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Trebol Azul/Negro Newton",
+    "color": "Azul",
+    "detalle": "Negro Newton",
+    "talla": "GD"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Trebol Azul/Negro Newton",
+    "color": "Azul",
+    "detalle": "Negro Newton",
+    "talla": "CH"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Trebol Acero/Verde",
+    "color": "Acero",
+    "detalle": "Verde",
+    "talla": "GD"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Trebol Acero/Verde",
+    "color": "Acero",
+    "detalle": "Verde",
+    "talla": "CH"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Trebol Acero/Turquesa",
+    "color": "Acero",
+    "detalle": "Turquesa",
+    "talla": "GD"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Trebol Acero/Turquesa Ch",
+    "color": "Acero",
+    "detalle": "Turquesa Ch",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Trebol Acero/Rosa",
+    "color": "Acero",
+    "detalle": "Rosa",
+    "talla": "GD"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Trebol Acero/Rosa",
+    "color": "Acero",
+    "detalle": "Rosa",
+    "talla": "CH"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Trebol Acero/Rojo",
+    "color": "Acero",
+    "detalle": "Rojo",
+    "talla": "GD"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Trebol Acero/Rojo",
+    "color": "Acero",
+    "detalle": "Rojo",
+    "talla": "CH"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Trebol Acero/Plata GD Shine",
+    "color": "Acero",
+    "detalle": "Plata GD Shine",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Trebol Acero/Plata CH Shine",
+    "color": "Acero",
+    "detalle": "Plata CH Shine",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Trebol Acero/Negro",
+    "color": "Acero",
+    "detalle": "Negro",
+    "talla": "GD"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Trebol Acero/Negro",
+    "color": "Acero",
+    "detalle": "Negro",
+    "talla": "CH"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Trebol Acero/Naranja",
+    "color": "Acero",
+    "detalle": "Naranja",
+    "talla": "GD"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Trebol Acero/Naranja",
+    "color": "Acero",
+    "detalle": "Naranja",
+    "talla": "CH"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Trebol Acero/Gris",
+    "color": "Acero",
+    "detalle": "Gris",
+    "talla": "GD"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Trebol Acero/Gris",
+    "color": "Acero",
+    "detalle": "Gris",
+    "talla": "CH"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Trebol Acero/Fucsia",
+    "color": "Acero",
+    "detalle": "Fucsia",
+    "talla": "GD"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Trebol Acero/Fucsia",
+    "color": "Acero",
+    "detalle": "Fucsia",
+    "talla": "CH"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Trebol Acero/Cafe",
+    "color": "Acero",
+    "detalle": "Cafe",
+    "talla": "GD"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Trebol Acero/Cafe",
+    "color": "Acero",
+    "detalle": "Cafe",
+    "talla": "CH"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Trebol Acero/Blanco",
+    "color": "Acero",
+    "detalle": "Blanco",
+    "talla": "GD"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Trebol Acero/Blanco",
+    "color": "Acero",
+    "detalle": "Blanco",
+    "talla": "CH"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Trebol Acero/Azul",
+    "color": "Acero",
+    "detalle": "Azul",
+    "talla": "GD"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Trebol Acero/Azul",
+    "color": "Acero",
+    "detalle": "Azul",
+    "talla": "CH"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Trebol Acero/Amarillo",
+    "color": "Acero",
+    "detalle": "Amarillo",
+    "talla": "GD"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Trebol Acero/Amarillo",
+    "color": "Acero",
+    "detalle": "Amarillo",
+    "talla": "CH"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Trebol Acero/Acero Trebol Verde",
+    "color": "Acero",
+    "detalle": "Acero Trebol Verde",
+    "talla": "G"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Trebol Acero/Acero Trebol Verde",
+    "color": "Acero",
+    "detalle": "Acero Trebol Verde",
+    "talla": "CH"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Trebol Dorado/Dorado Trebol Negro",
+    "color": "Dorado",
+    "detalle": "Dorado Trebol Negro",
+    "talla": "CH"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Racing Acero IP Negro/Verde CH -Banderas-",
+    "color": "Negro",
+    "detalle": "Verde CH -Banderas-",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Racing Negro/Rojo GD -Banderas-",
+    "color": "Negro",
+    "detalle": "Rojo GD -Banderas-",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Racing Negro/Rojo CH -Banderas-",
+    "color": "Negro",
+    "detalle": "Rojo CH -Banderas-",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Racing Negro/Negro G -Banderas-",
+    "color": "Negro",
+    "detalle": "Negro G -Banderas-",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Racing Negro/Gris",
+    "color": "Negro",
+    "detalle": "Gris",
+    "talla": "CH"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Racing Negro/Gris Obscuro",
+    "color": "Negro",
+    "detalle": "Gris Obscuro",
+    "talla": "CH"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Racing Negro/Negro CH -Banderas-",
+    "color": "Negro",
+    "detalle": "Negro CH -Banderas-",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Racing Negro/Naranja CH -Banderas-",
+    "color": "Negro",
+    "detalle": "Naranja CH -Banderas-",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Racing Negro/Blanco Ch -Banderas-",
+    "color": "Negro",
+    "detalle": "Blanco Ch -Banderas-",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Racing Negro/Azul CH -Banderas-",
+    "color": "Negro",
+    "detalle": "Azul CH -Banderas-",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Racing Negro/Amarillo CH -Banderas-",
+    "color": "Negro",
+    "detalle": "Amarillo CH -Banderas-",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Racing Dorado/Rojo G -Banderas-",
+    "color": "Dorado",
+    "detalle": "Rojo G -Banderas-",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Racing Dorado/Negro G -Banderas-",
+    "color": "Dorado",
+    "detalle": "Negro G -Banderas-",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Racing Dorado/Negro CH -Banderas-",
+    "color": "Dorado",
+    "detalle": "Negro CH -Banderas-",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Racing Dorado/Naranja G -Banderas-",
+    "color": "Dorado",
+    "detalle": "Naranja G -Banderas-",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Racing Dorado/Azul G -Banderas-",
+    "color": "Dorado",
+    "detalle": "Azul G -Banderas-",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Racing Dorado/Amarillo G -Banderas-",
+    "color": "Dorado",
+    "detalle": "Amarillo G -Banderas-",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Placers Dorado/Negro",
+    "color": "Dorado",
+    "detalle": "Negro",
+    "talla": "G"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Placers Dorado/Negro",
+    "color": "Dorado",
+    "detalle": "Negro",
+    "talla": "CH"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Placers Dorado/Blanco",
+    "color": "Dorado",
+    "detalle": "Blanco",
+    "talla": "GD"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Placers Dorado/Blanco CH  Stock",
+    "color": "Dorado",
+    "detalle": "Blanco CH  Stock",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Piel Serie II Negro/Rojo",
+    "color": "Negro",
+    "detalle": "Rojo",
+    "talla": "GD"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Piel Serie II Negro/Negro",
+    "color": "Negro",
+    "detalle": "Negro",
+    "talla": "GD"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Piel Serie II Dorado/Negro",
+    "color": "Dorado",
+    "detalle": "Negro",
+    "talla": "GD"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Piel Serie II Acero/Negro",
+    "color": "Acero",
+    "detalle": "Negro",
+    "talla": "GD"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Piel Serie II Acero/Azul",
+    "color": "Acero",
+    "detalle": "Azul",
+    "talla": "GD"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Niño Trebol Rosado/Rosado -Rose Gold-",
+    "color": "Rosado",
+    "detalle": "Rosado -Rose Gold-",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Niño Trebol Rosado/Rosa",
+    "color": "Rosado",
+    "detalle": "Rosa",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Niño Trebol Negro/Rojo",
+    "color": "Negro",
+    "detalle": "Rojo",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Niño Trebol Negro/Negro -Shine-",
+    "color": "Negro",
+    "detalle": "Negro -Shine-",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Niño Trebol Negro/Blanco",
+    "color": "Negro",
+    "detalle": "Blanco",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Niño Trebol Negro/Azul",
+    "color": "Negro",
+    "detalle": "Azul",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Niño Trebol Dorado/Verde",
+    "color": "Dorado",
+    "detalle": "Verde",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Niño Trebol Dorado/Turquesa -Tiffany-",
+    "color": "Dorado",
+    "detalle": "Turquesa -Tiffany-",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Niño Trebol Dorado/Rosa",
+    "color": "Dorado",
+    "detalle": "Rosa",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Niño Trebol Dorado/Rojo",
+    "color": "Dorado",
+    "detalle": "Rojo",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Niño Trebol Dorado/Negro -Clasica-",
+    "color": "Dorado",
+    "detalle": "Negro -Clasica-",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Niño Trebol Dorado/Fucsia",
+    "color": "Dorado",
+    "detalle": "Fucsia",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Niño Trebol Dorado/Dorado -Gold-",
+    "color": "Dorado",
+    "detalle": "Dorado -Gold-",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Niño Trebol Dorado/Blanco",
+    "color": "Dorado",
+    "detalle": "Blanco",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Niño Trebol Dorado/Azul",
+    "color": "Dorado",
+    "detalle": "Azul",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Niño Trebol Camo Acero/Verde",
+    "color": "Acero",
+    "detalle": "Verde",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Niño Trebol Camo Acero/Rosa",
+    "color": "Acero",
+    "detalle": "Rosa",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Niño Trebol Camo Acero/Rojo",
+    "color": "Acero",
+    "detalle": "Rojo",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Niño Trebol Camo Acero/Gris",
+    "color": "Acero",
+    "detalle": "Gris",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Niño Trebol Camo Acero/Azul",
+    "color": "Acero",
+    "detalle": "Azul",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Niño Trebol Acero/Verde",
+    "color": "Acero",
+    "detalle": "Verde",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Niño Trebol Acero/Turquesa",
+    "color": "Acero",
+    "detalle": "Turquesa",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Niño Trebol Acero/Rosa  Stock",
+    "color": "Acero",
+    "detalle": "Rosa  Stock",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Niño Trebol Acero/Rojo",
+    "color": "Acero",
+    "detalle": "Rojo",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Niño Trebol Acero/Plata Shine",
+    "color": "Acero",
+    "detalle": "Plata Shine",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Niño Trebol Acero/Naranja",
+    "color": "Acero",
+    "detalle": "Naranja",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Niño Trebol Acero/Gris",
+    "color": "Acero",
+    "detalle": "Gris",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Niño Trebol Acero/Fucsia",
+    "color": "Acero",
+    "detalle": "Fucsia",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Niño Trebol Acero/Cafe",
+    "color": "Acero",
+    "detalle": "Cafe",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Niño Trebol Acero/Blanco",
+    "color": "Acero",
+    "detalle": "Blanco",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Niño Trebol Acero/Azul",
+    "color": "Acero",
+    "detalle": "Azul",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Niño Trebol Acero/Amarillo",
+    "color": "Acero",
+    "detalle": "Amarillo",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Good Lucky Dorado/Negro GD Zirconia",
+    "color": "Dorado",
+    "detalle": "Negro GD Zirconia",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Good Lucky Dorado/Negro GD S/P",
+    "color": "Dorado",
+    "detalle": "Negro GD S/P",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Good Lucky Dorado/Negro CH Zirconia",
+    "color": "Dorado",
+    "detalle": "Negro CH Zirconia",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Good Lucky Dorado/Negro CH S/P",
+    "color": "Dorado",
+    "detalle": "Negro CH S/P",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Good Lucky Dorado/Blanco CH Zirconia",
+    "color": "Dorado",
+    "detalle": "Blanco CH Zirconia",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Camo Trebol Negro/Verde",
+    "color": "Negro",
+    "detalle": "Verde",
+    "talla": "GD"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Camo Trebol Negro/Verde",
+    "color": "Negro",
+    "detalle": "Verde",
+    "talla": "CH"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Camo Trebol Negro/Rosa",
+    "color": "Negro",
+    "detalle": "Rosa",
+    "talla": "CH"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Camo Trebol Negro/Rojo",
+    "color": "Negro",
+    "detalle": "Rojo",
+    "talla": "GD"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Camo Trebol Negro/Rojo",
+    "color": "Negro",
+    "detalle": "Rojo",
+    "talla": "CH"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Camo Trebol Negro/Gris",
+    "color": "Negro",
+    "detalle": "Gris",
+    "talla": "GD"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Camo Trebol Negro/Gris",
+    "color": "Negro",
+    "detalle": "Gris",
+    "talla": "CH"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Camo Trebol Negro/Azul",
+    "color": "Negro",
+    "detalle": "Azul",
+    "talla": "GD"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Camo Trebol Negro/Azul",
+    "color": "Negro",
+    "detalle": "Azul",
+    "talla": "CH"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Camo Trebol Dorado/Verde",
+    "color": "Dorado",
+    "detalle": "Verde",
+    "talla": "GD"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Camo Trebol Dorado/Verde",
+    "color": "Dorado",
+    "detalle": "Verde",
+    "talla": "CH"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Camo Trebol Dorado/Rosa",
+    "color": "Dorado",
+    "detalle": "Rosa",
+    "talla": "CH"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Camo Trebol Dorado/Rojo",
+    "color": "Dorado",
+    "detalle": "Rojo",
+    "talla": "GD"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Camo Trebol Dorado/Rojo",
+    "color": "Dorado",
+    "detalle": "Rojo",
+    "talla": "CH"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Camo Trebol Dorado/Azul",
+    "color": "Dorado",
+    "detalle": "Azul",
+    "talla": "GD"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Camo Trebol Dorado/Azul",
+    "color": "Dorado",
+    "detalle": "Azul",
+    "talla": "CH"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Camo Trebol Acero/Verde",
+    "color": "Acero",
+    "detalle": "Verde",
+    "talla": "GD"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Camo Trebol Acero/Verde",
+    "color": "Acero",
+    "detalle": "Verde",
+    "talla": "CH"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Camo Trebol Acero/Rosa",
+    "color": "Acero",
+    "detalle": "Rosa",
+    "talla": "GD"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Camo Trebol Acero/Rosa",
+    "color": "Acero",
+    "detalle": "Rosa",
+    "talla": "CH"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Camo Trebol Acero/Rojo",
+    "color": "Acero",
+    "detalle": "Rojo",
+    "talla": "GD"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Camo Trebol Acero/Rojo",
+    "color": "Acero",
+    "detalle": "Rojo",
+    "talla": "CH"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Camo Trebol Acero/Gris",
+    "color": "Acero",
+    "detalle": "Gris",
+    "talla": "GD"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Camo Trebol Acero/Gris",
+    "color": "Acero",
+    "detalle": "Gris",
+    "talla": "CH"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Camo Trebol Acero/Azul",
+    "color": "Acero",
+    "detalle": "Azul",
+    "talla": "GD"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Camo Trebol Acero/Azul",
+    "color": "Acero",
+    "detalle": "Azul",
+    "talla": "CH"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Camo Cerrada Trebol Dorado/Verde",
+    "color": "Dorado",
+    "detalle": "Verde",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Camo Cerrada Trebol Dorado/Rosa",
+    "color": "Dorado",
+    "detalle": "Rosa",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Camo Cerrada Trebol Dorado/Rojo",
+    "color": "Dorado",
+    "detalle": "Rojo",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Camo Cerrada Trebol Dorado/Azul",
+    "color": "Dorado",
+    "detalle": "Azul",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Calavera Negro/Rojo Serie ll",
+    "color": "Negro",
+    "detalle": "Rojo Serie ll",
+    "talla": "GD"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Calavera Negro/Rojo Serie ll",
+    "color": "Negro",
+    "detalle": "Rojo Serie ll",
+    "talla": "CH"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Calavera Negro/Negro/Negro Serie II",
+    "color": "Negro",
+    "detalle": "Negro/Negro Serie II",
+    "talla": "GD"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Calavera Negro/Negro/Negro Serie II",
+    "color": "Negro",
+    "detalle": "Negro/Negro Serie II",
+    "talla": "CH"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Calavera Negro/Negro/Dorado Serie II",
+    "color": "Negro",
+    "detalle": "Negro/Dorado Serie II",
+    "talla": "GD"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Calavera Negro/Negro/Dorado Serie II",
+    "color": "Negro",
+    "detalle": "Negro/Dorado Serie II",
+    "talla": "CH"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Calavera Negro/Gris Serie II",
+    "color": "Negro",
+    "detalle": "Gris Serie II",
+    "talla": "G"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Calavera Negro/Blanco Serie II",
+    "color": "Negro",
+    "detalle": "Blanco Serie II",
+    "talla": "G"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Calavera Negro/Blanco Serie II",
+    "color": "Negro",
+    "detalle": "Blanco Serie II",
+    "talla": "CH"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Calavera Negro/Rojo",
+    "color": "Negro",
+    "detalle": "Rojo",
+    "talla": "GD"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Calavera Negro/Rojo",
+    "color": "Negro",
+    "detalle": "Rojo",
+    "talla": "CH"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Calavera Negro/Negro/Negro",
+    "color": "Negro",
+    "detalle": "Negro/Negro",
+    "talla": "GD"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Calavera Negro/Negro/Negro",
+    "color": "Negro",
+    "detalle": "Negro/Negro",
+    "talla": "CH"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Calavera Negro/Negro/Dorado",
+    "color": "Negro",
+    "detalle": "Negro/Dorado",
+    "talla": "GD"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Calavera Dorado/Rojo",
+    "color": "Dorado",
+    "detalle": "Rojo",
+    "talla": "CH"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Calavera Dorado/Negro GD -Clasica-",
+    "color": "Dorado",
+    "detalle": "Negro GD -Clasica-",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Calavera Dorado/Negro Clasica Serie ll",
+    "color": "Dorado",
+    "detalle": "Negro Clasica Serie ll",
+    "talla": "GD"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Calavera Dorado/Negro Clasica Serie ll",
+    "color": "Dorado",
+    "detalle": "Negro Clasica Serie ll",
+    "talla": "CH"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Calavera Dorado/Negro CH -Clasica-",
+    "color": "Dorado",
+    "detalle": "Negro CH -Clasica-",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Calavera Dorado/Blanco",
+    "color": "Dorado",
+    "detalle": "Blanco",
+    "talla": "CH"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Calavera Acero/Negro",
+    "color": "Acero",
+    "detalle": "Negro",
+    "talla": "GD"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Calavera Acero/Negro",
+    "color": "Acero",
+    "detalle": "Negro",
+    "talla": "CH"
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Bebe Trebol Dorado/Verde",
+    "color": "Dorado",
+    "detalle": "Verde",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Bebe Trebol Dorado/Turquesa -Tiffany-",
+    "color": "Dorado",
+    "detalle": "Turquesa -Tiffany-",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Bebe Trebol Dorado/Rosa",
+    "color": "Dorado",
+    "detalle": "Rosa",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Bebe Trebol Dorado/Rojo",
+    "color": "Dorado",
+    "detalle": "Rojo",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Bebe Trebol Dorado/Negro -Clasica-",
+    "color": "Dorado",
+    "detalle": "Negro -Clasica-",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Bebe Trebol Dorado/Fucsia",
+    "color": "Dorado",
+    "detalle": "Fucsia",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Bebe Trebol Dorado/Blanco",
+    "color": "Dorado",
+    "detalle": "Blanco",
+    "talla": ""
+  },
+  {
+    "tipo": "Pulsera",
+    "nombre": "Pulsera Bebe Trebol Dorado/Azul",
+    "color": "Dorado",
+    "detalle": "Azul",
+    "talla": ""
+  },
+  {
+    "tipo": "Llavero",
+    "nombre": "Llavero Trebol",
+    "color": "",
+    "detalle": "Llavero Trebol",
+    "talla": ""
+  },
+  {
+    "tipo": "Llavero",
+    "nombre": "Llavero Lets Make Money",
+    "color": "",
+    "detalle": "Llavero Lets Make Money",
+    "talla": ""
+  },
+  {
+    "tipo": "Gorra",
+    "nombre": "Gorra Trebol Negra/Tela logo verde",
+    "color": "Negra",
+    "detalle": "Tela logo verde",
+    "talla": ""
+  },
+  {
+    "tipo": "Gorra",
+    "nombre": "Gorra Trebol Negra/Red Logo Verde",
+    "color": "Negra",
+    "detalle": "Red Logo Verde",
+    "talla": ""
+  },
+  {
+    "tipo": "Gorra",
+    "nombre": "Gorra Trebol Negra/Tela logo negro",
+    "color": "Negra",
+    "detalle": "Tela logo negro",
+    "talla": ""
+  },
+  {
+    "tipo": "Gorra",
+    "nombre": "Gorra Trebol Negra/Red logo negro",
+    "color": "Negra",
+    "detalle": "Red logo negro",
+    "talla": ""
+  },
+  {
+    "tipo": "Estuche",
+    "nombre": "Estuche de Regalo",
+    "color": "",
+    "detalle": "Estuche de Regalo",
+    "talla": ""
+  },
+  {
+    "tipo": "Dije",
+    "nombre": "Dije Trebol Rosado/Rosado -Rose Gold-",
+    "color": "Rosado",
+    "detalle": "Rosado -Rose Gold-",
+    "talla": ""
+  },
+  {
+    "tipo": "Dije",
+    "nombre": "Dije Trebol Rosado/Rosa",
+    "color": "Rosado",
+    "detalle": "Rosa",
+    "talla": ""
+  },
+  {
+    "tipo": "Dije",
+    "nombre": "Dije Trebol Rosado/Negro",
+    "color": "Rosado",
+    "detalle": "Negro",
+    "talla": ""
+  },
+  {
+    "tipo": "Dije",
+    "nombre": "Dije Trebol Rosado/Blanco",
+    "color": "Rosado",
+    "detalle": "Blanco",
+    "talla": ""
+  },
+  {
+    "tipo": "Dije",
+    "nombre": "Dije Trebol Negro/Zirconia Colores",
+    "color": "Negro",
+    "detalle": "Zirconia Colores",
+    "talla": ""
+  },
+  {
+    "tipo": "Dije",
+    "nombre": "Dije Trebol Negro/Verde",
+    "color": "Negro",
+    "detalle": "Verde",
+    "talla": ""
+  },
+  {
+    "tipo": "Dije",
+    "nombre": "Dije Trebol Negro/Rosa",
+    "color": "Negro",
+    "detalle": "Rosa",
+    "talla": ""
+  },
+  {
+    "tipo": "Dije",
+    "nombre": "Dije Trebol Negro/Rojo",
+    "color": "Negro",
+    "detalle": "Rojo",
+    "talla": ""
+  },
+  {
+    "tipo": "Dije",
+    "nombre": "Dije Trebol Negro/Negro Mate",
+    "color": "Negro",
+    "detalle": "Negro Mate",
+    "talla": ""
+  },
+  {
+    "tipo": "Dije",
+    "nombre": "Dije Trebol Negro/Negro",
+    "color": "Negro",
+    "detalle": "Negro",
+    "talla": ""
+  },
+  {
+    "tipo": "Dije",
+    "nombre": "Dije Trebol Negro/Gris",
+    "color": "Negro",
+    "detalle": "Gris",
+    "talla": ""
+  },
+  {
+    "tipo": "Dije",
+    "nombre": "Dije Trebol Negro/Blanco",
+    "color": "Negro",
+    "detalle": "Blanco",
+    "talla": ""
+  },
+  {
+    "tipo": "Dije",
+    "nombre": "Dije Trebol Dorado/Zirconia Colores",
+    "color": "Dorado",
+    "detalle": "Zirconia Colores",
+    "talla": ""
+  },
+  {
+    "tipo": "Dije",
+    "nombre": "Dije Trebol Dorado/Zirconia",
+    "color": "Dorado",
+    "detalle": "Zirconia",
+    "talla": ""
+  },
+  {
+    "tipo": "Dije",
+    "nombre": "Dije Trebol Dorado/Verde",
+    "color": "Dorado",
+    "detalle": "Verde",
+    "talla": ""
+  },
+  {
+    "tipo": "Dije",
+    "nombre": "Dije Trebol Dorado/Turquesa -Tiffany-",
+    "color": "Dorado",
+    "detalle": "Turquesa -Tiffany-",
+    "talla": ""
+  },
+  {
+    "tipo": "Dije",
+    "nombre": "Dije Trebol Dorado/Rosa",
+    "color": "Dorado",
+    "detalle": "Rosa",
+    "talla": ""
+  },
+  {
+    "tipo": "Dije",
+    "nombre": "Dije Trebol Dorado/Rojo",
+    "color": "Dorado",
+    "detalle": "Rojo",
+    "talla": ""
+  },
+  {
+    "tipo": "Dije",
+    "nombre": "Dije Trebol Dorado/Negro -Clasico-",
+    "color": "Dorado",
+    "detalle": "Negro -Clasico-",
+    "talla": ""
+  },
+  {
+    "tipo": "Dije",
+    "nombre": "Dije Trebol Dorado/Fucsia",
+    "color": "Dorado",
+    "detalle": "Fucsia",
+    "talla": ""
+  },
+  {
+    "tipo": "Dije",
+    "nombre": "Dije Trebol Dorado/Dorado -Gold-",
+    "color": "Dorado",
+    "detalle": "Dorado -Gold-",
+    "talla": ""
+  },
+  {
+    "tipo": "Dije",
+    "nombre": "Dije Trebol Dorado/Blanco",
+    "color": "Dorado",
+    "detalle": "Blanco",
+    "talla": ""
+  },
+  {
+    "tipo": "Dije",
+    "nombre": "Dije Trebol Dorado/Azul",
+    "color": "Dorado",
+    "detalle": "Azul",
+    "talla": ""
+  },
+  {
+    "tipo": "Dije",
+    "nombre": "Dije Trebol Acero/Zirconia Colores",
+    "color": "Acero",
+    "detalle": "Zirconia Colores",
+    "talla": ""
+  },
+  {
+    "tipo": "Dije",
+    "nombre": "Dije Trebol Acero/Zirconia",
+    "color": "Acero",
+    "detalle": "Zirconia",
+    "talla": ""
+  },
+  {
+    "tipo": "Dije",
+    "nombre": "Dije Trebol Acero/Turquesa",
+    "color": "Acero",
+    "detalle": "Turquesa",
+    "talla": ""
+  },
+  {
+    "tipo": "Dije",
+    "nombre": "Dije Trebol Acero/Rosa",
+    "color": "Acero",
+    "detalle": "Rosa",
+    "talla": ""
+  },
+  {
+    "tipo": "Dije",
+    "nombre": "Dije Trebol Acero/Rojo",
+    "color": "Acero",
+    "detalle": "Rojo",
+    "talla": ""
+  },
+  {
+    "tipo": "Dije",
+    "nombre": "Dije Trebol Acero/Negro",
+    "color": "Acero",
+    "detalle": "Negro",
+    "talla": ""
+  },
+  {
+    "tipo": "Dije",
+    "nombre": "Dije Trebol Acero/Naranja",
+    "color": "Acero",
+    "detalle": "Naranja",
+    "talla": ""
+  },
+  {
+    "tipo": "Dije",
+    "nombre": "Dije Trebol Acero/Fucsia",
+    "color": "Acero",
+    "detalle": "Fucsia",
+    "talla": ""
+  },
+  {
+    "tipo": "Dije",
+    "nombre": "Dije Trebol Acero/Blanco",
+    "color": "Acero",
+    "detalle": "Blanco",
+    "talla": ""
+  },
+  {
+    "tipo": "Dije",
+    "nombre": "Dije Trebol Acero/Azul",
+    "color": "Acero",
+    "detalle": "Azul",
+    "talla": ""
+  },
+  {
+    "tipo": "Dije",
+    "nombre": "Dije Trebol  Acero/Amarillo",
+    "color": "Acero",
+    "detalle": "Amarillo",
+    "talla": ""
+  },
+  {
+    "tipo": "Dije",
+    "nombre": "Dije Candado Dorado/Dorado",
+    "color": "Dorado",
+    "detalle": "Dorado",
+    "talla": ""
+  },
+  {
+    "tipo": "Dije",
+    "nombre": "Dije Silueta Dorado/Zirconia",
+    "color": "Dorado",
+    "detalle": "Zirconia",
+    "talla": ""
+  },
+  {
+    "tipo": "Dije",
+    "nombre": "Dije Vitolias Dorado",
+    "color": "",
+    "detalle": "Dije Vitolias Dorado",
+    "talla": ""
+  },
+  {
+    "tipo": "Dije",
+    "nombre": "Dije Sombrero Negro/Gris",
+    "color": "Negro",
+    "detalle": "Gris",
+    "talla": ""
+  },
+  {
+    "tipo": "Dije",
+    "nombre": "Dije Sombrero Negro/Amarillo",
+    "color": "Negro",
+    "detalle": "Amarillo",
+    "talla": ""
+  },
+  {
+    "tipo": "Dije",
+    "nombre": "Dije Sombrero Dorado/Dorado",
+    "color": "Dorado",
+    "detalle": "Dorado",
+    "talla": ""
+  },
+  {
+    "tipo": "Dije",
+    "nombre": "Dije Sombrero Acero/Amarillo",
+    "color": "Acero",
+    "detalle": "Amarillo",
+    "talla": ""
+  },
+  {
+    "tipo": "Dije",
+    "nombre": "Dije Payaso Dorado",
+    "color": "",
+    "detalle": "Dije Payaso Dorado",
+    "talla": ""
+  },
+  {
+    "tipo": "Dije",
+    "nombre": "Dije Payaso Acero",
+    "color": "",
+    "detalle": "Dije Payaso Acero",
+    "talla": ""
+  },
+  {
+    "tipo": "Dije",
+    "nombre": "Dije MZ Dorado",
+    "color": "",
+    "detalle": "Dije MZ Dorado",
+    "talla": ""
+  },
+  {
+    "tipo": "Dije",
+    "nombre": "Dije Magico Dorado",
+    "color": "",
+    "detalle": "Dije Magico Dorado",
+    "talla": ""
+  },
+  {
+    "tipo": "Dije",
+    "nombre": "Dije Hamsa Dorado/Zirconia",
+    "color": "Dorado",
+    "detalle": "Zirconia",
+    "talla": ""
+  },
+  {
+    "tipo": "Cadena",
+    "nombre": "Cadena para dije",
+    "color": "",
+    "detalle": "Cadena para dije",
+    "talla": ""
+  },
+  {
+    "tipo": "Baraja",
+    "nombre": "Baraja Magico",
+    "color": "",
+    "detalle": "Baraja Magico",
+    "talla": ""
+  },
+  {
+    "tipo": "Aretes",
+    "nombre": "Aretes Dama Trebol Rosado/Rosado Zirconia",
+    "color": "Rosado",
+    "detalle": "Rosado Zirconia",
+    "talla": ""
+  },
+  {
+    "tipo": "Aretes",
+    "nombre": "Aretes Silueta Dorado/Dorado Zirconia",
+    "color": "Dorado",
+    "detalle": "Dorado Zirconia",
+    "talla": ""
+  },
+  {
+    "tipo": "Aretes",
+    "nombre": "Aretes Niña Trebol Dorado/Verde",
+    "color": "Dorado",
+    "detalle": "Verde",
+    "talla": ""
+  },
+  {
+    "tipo": "Aretes",
+    "nombre": "Aretes Niña Trebol Dorado/Turquesa",
+    "color": "Dorado",
+    "detalle": "Turquesa",
+    "talla": ""
+  },
+  {
+    "tipo": "Aretes",
+    "nombre": "Aretes Niña Trebol Dorado/Rosa",
+    "color": "Dorado",
+    "detalle": "Rosa",
+    "talla": ""
+  },
+  {
+    "tipo": "Aretes",
+    "nombre": "Aretes Niña Trebol Dorado/Rojo",
+    "color": "Dorado",
+    "detalle": "Rojo",
+    "talla": ""
+  },
+  {
+    "tipo": "Aretes",
+    "nombre": "Aretes Niña Trebol Dorado/Negro",
+    "color": "Dorado",
+    "detalle": "Negro",
+    "talla": ""
+  },
+  {
+    "tipo": "Aretes",
+    "nombre": "Aretes Niña Trebol Dorado/Fucsia",
+    "color": "Dorado",
+    "detalle": "Fucsia",
+    "talla": ""
+  },
+  {
+    "tipo": "Aretes",
+    "nombre": "Aretes Niña Trebol Dorado/Azul",
+    "color": "Dorado",
+    "detalle": "Azul",
+    "talla": ""
+  },
+  {
+    "tipo": "Aretes",
+    "nombre": "Aretes Niña Trebol Acero/Verde",
+    "color": "Acero",
+    "detalle": "Verde",
+    "talla": ""
+  },
+  {
+    "tipo": "Aretes",
+    "nombre": "Aretes Niña Trebol Acero/Rosa",
+    "color": "Acero",
+    "detalle": "Rosa",
+    "talla": ""
+  },
+  {
+    "tipo": "Aretes",
+    "nombre": "Aretes Niña Trebol Acero/Rojo",
+    "color": "Acero",
+    "detalle": "Rojo",
+    "talla": ""
+  },
+  {
+    "tipo": "Aretes",
+    "nombre": "Aretes Niña Trebol Acero/Negro",
+    "color": "Acero",
+    "detalle": "Negro",
+    "talla": ""
+  },
+  {
+    "tipo": "Aretes",
+    "nombre": "Aretes Niña Trebol Acero/Blanco",
+    "color": "Acero",
+    "detalle": "Blanco",
+    "talla": ""
+  },
+  {
+    "tipo": "Aretes",
+    "nombre": "Aretes Juvenil Trebol Rosado/Rosa",
+    "color": "Rosado",
+    "detalle": "Rosa",
+    "talla": ""
+  },
+  {
+    "tipo": "Aretes",
+    "nombre": "Aretes Juvenil Trebol Rosado/Negro",
+    "color": "Rosado",
+    "detalle": "Negro",
+    "talla": ""
+  },
+  {
+    "tipo": "Aretes",
+    "nombre": "Aretes Juvenil Trebol Rosado/Blanco",
+    "color": "Rosado",
+    "detalle": "Blanco",
+    "talla": ""
+  },
+  {
+    "tipo": "Aretes",
+    "nombre": "Aretes Juvenil Trebol Dorado/Turquesa -Tiffany-",
+    "color": "Dorado",
+    "detalle": "Turquesa -Tiffany-",
+    "talla": ""
+  },
+  {
+    "tipo": "Aretes",
+    "nombre": "Aretes Juvenil Trebol Dorado/Rosa",
+    "color": "Dorado",
+    "detalle": "Rosa",
+    "talla": ""
+  },
+  {
+    "tipo": "Aretes",
+    "nombre": "Aretes Juvenil Trebol Dorado/Rojo",
+    "color": "Dorado",
+    "detalle": "Rojo",
+    "talla": ""
+  },
+  {
+    "tipo": "Aretes",
+    "nombre": "Aretes Juvenil Trebol Dorado/Negro",
+    "color": "Dorado",
+    "detalle": "Negro",
+    "talla": ""
+  },
+  {
+    "tipo": "Aretes",
+    "nombre": "Aretes Juvenil Trebol Dorado/Blanco",
+    "color": "Dorado",
+    "detalle": "Blanco",
+    "talla": ""
+  },
+  {
+    "tipo": "Aretes",
+    "nombre": "Aretes Dama Trebol Rosado/Rosado -Rose Gold-",
+    "color": "Rosado",
+    "detalle": "Rosado -Rose Gold-",
+    "talla": ""
+  },
+  {
+    "tipo": "Aretes",
+    "nombre": "Aretes Dama Trebol Rosado/Rosa",
+    "color": "Rosado",
+    "detalle": "Rosa",
+    "talla": ""
+  },
+  {
+    "tipo": "Aretes",
+    "nombre": "Aretes Dama Trebol  Rosado/Negro",
+    "color": "Rosado",
+    "detalle": "Negro",
+    "talla": ""
+  },
+  {
+    "tipo": "Aretes",
+    "nombre": "Aretes Dama Trebol Rosado/Blanco",
+    "color": "Rosado",
+    "detalle": "Blanco",
+    "talla": ""
+  },
+  {
+    "tipo": "Aretes",
+    "nombre": "Aretes Dama Trebol Negro/Zirconia Colores",
+    "color": "Negro",
+    "detalle": "Zirconia Colores",
+    "talla": ""
+  },
+  {
+    "tipo": "Aretes",
+    "nombre": "Aretes Dama Trebol Dorado/Zirconia Colores",
+    "color": "Dorado",
+    "detalle": "Zirconia Colores",
+    "talla": ""
+  },
+  {
+    "tipo": "Aretes",
+    "nombre": "Aretes Dama Trebol Dorado/Zirconia",
+    "color": "Dorado",
+    "detalle": "Zirconia",
+    "talla": ""
+  },
+  {
+    "tipo": "Aretes",
+    "nombre": "Aretes Dama Trebol Dorado/Verde",
+    "color": "Dorado",
+    "detalle": "Verde",
+    "talla": ""
+  },
+  {
+    "tipo": "Aretes",
+    "nombre": "Aretes Dama Trebol Dorado/Turquesa -Tiffany-",
+    "color": "Dorado",
+    "detalle": "Turquesa -Tiffany-",
+    "talla": ""
+  },
+  {
+    "tipo": "Aretes",
+    "nombre": "Aretes Dama Trebol Dorado/Rosa",
+    "color": "Dorado",
+    "detalle": "Rosa",
+    "talla": ""
+  },
+  {
+    "tipo": "Aretes",
+    "nombre": "Aretes Dama Trebol Dorado/Rojo",
+    "color": "Dorado",
+    "detalle": "Rojo",
+    "talla": ""
+  },
+  {
+    "tipo": "Aretes",
+    "nombre": "Aretes Dama Trebol Dorado/Negro",
+    "color": "Dorado",
+    "detalle": "Negro",
+    "talla": ""
+  },
+  {
+    "tipo": "Aretes",
+    "nombre": "Aretes Dama Trebol Dorado/Fucsia",
+    "color": "Dorado",
+    "detalle": "Fucsia",
+    "talla": ""
+  },
+  {
+    "tipo": "Aretes",
+    "nombre": "Aretes Dama Trebol Dorado/Dorado -Gold-",
+    "color": "Dorado",
+    "detalle": "Dorado -Gold-",
+    "talla": ""
+  },
+  {
+    "tipo": "Aretes",
+    "nombre": "Aretes Dama Trebol Dorado/Blanco",
+    "color": "Dorado",
+    "detalle": "Blanco",
+    "talla": ""
+  },
+  {
+    "tipo": "Aretes",
+    "nombre": "Aretes Dama Trebol Dorado/Azul",
+    "color": "Dorado",
+    "detalle": "Azul",
+    "talla": ""
+  },
+  {
+    "tipo": "Aretes",
+    "nombre": "Aretes Dama Trebol Acero/Zirconia Colores",
+    "color": "Acero",
+    "detalle": "Zirconia Colores",
+    "talla": ""
+  },
+  {
+    "tipo": "Aretes",
+    "nombre": "Aretes Dama Trebol Acero/Zirconia",
+    "color": "Acero",
+    "detalle": "Zirconia",
+    "talla": ""
+  },
+  {
+    "tipo": "Aretes",
+    "nombre": "Aretes Dama Trebol Acero/Azul",
+    "color": "Acero",
+    "detalle": "Azul",
+    "talla": ""
+  },
+  {
+    "tipo": "Anillo",
+    "nombre": "Anillo Chico Trebol Rosado/Rosado -Rose Gold-",
+    "color": "Rosado",
+    "detalle": "Rosado -Rose Gold-",
+    "talla": ""
+  },
+  {
+    "tipo": "Anillo",
+    "nombre": "Anillo Chico Trebol Rosado/Blanco  Stock",
+    "color": "Rosado",
+    "detalle": "Blanco  Stock",
+    "talla": ""
+  },
+  {
+    "tipo": "Anillo",
+    "nombre": "Anillo Chico Trebol Dorado/Verde  Stock",
+    "color": "Dorado",
+    "detalle": "Verde  Stock",
+    "talla": ""
+  },
+  {
+    "tipo": "Anillo",
+    "nombre": "Anillo Chico Trebol Dorado/Turquesa  Stock",
+    "color": "Dorado",
+    "detalle": "Turquesa  Stock",
+    "talla": ""
+  },
+  {
+    "tipo": "Anillo",
+    "nombre": "Anillo Chico Trebol Dorado/Rosa  Stock",
+    "color": "Dorado",
+    "detalle": "Rosa  Stock",
+    "talla": ""
+  },
+  {
+    "tipo": "Anillo",
+    "nombre": "Anillo Chico Trebol Dorado/Rojo  Stock",
+    "color": "Dorado",
+    "detalle": "Rojo  Stock",
+    "talla": ""
+  },
+  {
+    "tipo": "Anillo",
+    "nombre": "Anillo Chico Trebol Dorado/Negro",
+    "color": "Dorado",
+    "detalle": "Negro",
+    "talla": ""
+  },
+  {
+    "tipo": "Anillo",
+    "nombre": "Anillo Chico Trebol Dorado/Dorado -Gold-",
+    "color": "Dorado",
+    "detalle": "Dorado -Gold-",
+    "talla": ""
+  },
+  {
+    "tipo": "Anillo",
+    "nombre": "Anillo Chico Trebol Dorado/Blanco",
+    "color": "Dorado",
+    "detalle": "Blanco",
+    "talla": ""
+  },
+  {
+    "tipo": "Agenda",
+    "nombre": "Agenda Trebol Lucky Meetings",
+    "color": "",
+    "detalle": "Agenda Trebol Lucky Meetings",
+    "talla": ""
+  }
+];
+
+    const tipoSelect = document.getElementById('tipoSelect');
+    const nombreSelect = document.getElementById('nombreSelect');
+    const mensaje = document.getElementById("mensaje");
+
+    // Poblar tipos únicos
+    const tipos = [...new Set(productos.map(p => p.tipo))].sort();
+    tipos.forEach(t => {
+      const option = document.createElement('option');
+      option.value = t;
+      option.textContent = t;
+      tipoSelect.appendChild(option);
+    });
+
+    // Evento al cambiar tipo
+    tipoSelect.addEventListener('change', () => {
+      nombreSelect.innerHTML = '<option value="">--Selecciona Nombre--</option>';
+      nombreSelect.disabled = true;
+      if (!tipoSelect.value) return;
+      const nombres = [...new Set(productos
+        .filter(p => p.tipo === tipoSelect.value)
+        .map(p => p.nombre))].sort();
+      nombres.forEach(n => {
+        const option = document.createElement('option');
+        option.value = n;
+        option.textContent = n;
+        nombreSelect.appendChild(option);
+      });
+      nombreSelect.disabled = false;
+    });
+
+    // Función para generar QR con 6 caracteres alfanuméricos
+    function generarQR() {
+      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+      return Array.from({length: 6}, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+    }
+
+    // Función para generar código de tienda con 8 caracteres alfanuméricos iniciando con FH
+    function generarCodigoTienda() {
+      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+      return 'FH' + Array.from({length: 6}, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+    }
+
+    document.getElementById("generarForm").addEventListener("submit", async function(e) {
+      e.preventDefault();
+      const tipo = tipoSelect.value;
+      const nombre = nombreSelect.value;
+
+      if (!tipo || !nombre) {
+        mensaje.innerText = "❌ Debe seleccionar tipo y nombre.";
+        return;
+      }
+
+      const producto = `${tipo} ${nombre}`;
+      let nuevoQR, nuevoCodigoTienda;
+      let qrExiste = true;
+      let tiendaExiste = true;
+
+      while (qrExiste || tiendaExiste) {
+        nuevoQR = generarQR();
+        nuevoCodigoTienda = generarCodigoTienda();
+
+        const { data: qrData } = await supabaseClient
+          .from("certificaciones")
+          .select("fortune_qr")
+          .eq("fortune_qr", nuevoQR);
+
+        const { data: tiendaData } = await supabaseClient
+          .from("certificaciones")
+          .select("codigo_tienda")
+          .eq("codigo_tienda", nuevoCodigoTienda);
+
+        qrExiste = qrData.length > 0;
+        tiendaExiste = tiendaData.length > 0;
+      }
+
+      const { error } = await supabaseClient
+        .from("certificaciones")
+        .insert([{
+          fortune_qr: nuevoQR,
+          codigo_tienda: nuevoCodigoTienda,
+          producto: producto,
+          fecha_venta: new Date().toISOString()
+        }]);
+
+      if (error) {
+        mensaje.innerText = "❌ Error al generar código: " + error.message;
+      } else {
+        mensaje.innerHTML = `✅ Código generado:<br>
+          <b>QR:</b> ${nuevoQR}<br>
+          <b>Código Tienda:</b> ${nuevoCodigoTienda}`;
+        tipoSelect.value = "";
+        nombreSelect.innerHTML = '<option value="">--Selecciona Nombre--</option>';
+        nombreSelect.disabled = true;
+      }
+    });
+  </script>
+</body>
+</html>
